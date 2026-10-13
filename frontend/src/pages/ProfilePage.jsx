@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import client from '../api/client';
 import Button from '../components/ui/Button';
@@ -15,12 +15,10 @@ import {
   AlertCircleIcon,
   EyeIcon,
   EyeOffIcon,
-  LogOutIcon,
 } from '../components/ui/Icons';
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Données de profil enrichies
   const [profilInfo, setProfilInfo] = useState(null);
@@ -117,11 +115,6 @@ export default function ProfilePage() {
     }
   }
 
-  function handleLogout() {
-    logout();
-    navigate('/login');
-  }
-
   const emailAffiche = profilInfo?.email || user?.email || 'mon-compte@email.com';
   const initiales = emailAffiche.charAt(0).toUpperCase();
 
@@ -129,35 +122,21 @@ export default function ProfilePage() {
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50/50 py-8 px-4 sm:px-6 lg:px-8 fade-in">
       <div className="max-w-3xl mx-auto space-y-6">
         {/* ── Entête & Navigation de retour ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/80">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Link
-                to="/dashboard"
-                className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1"
-              >
-                <span>← Retour au Tableau de bord</span>
-              </Link>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Mon Profil & Sécurité
-            </h1>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1">
-              Gérez simplement vos informations de compte et modifiez votre mot de passe en toute sécurité.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={handleLogout}
-              className="w-full sm:w-auto"
+        <div className="pb-2 border-b border-slate-200/80">
+          <div className="flex items-center gap-2 mb-1">
+            <Link
+              to="/dashboard"
+              className="text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors inline-flex items-center gap-1"
             >
-              <LogOutIcon className="w-4 h-4" />
-              Déconnexion
-            </Button>
+              <span>← Retour au Tableau de bord</span>
+            </Link>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Mon Profil & Sécurité
+          </h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            Gérez simplement vos informations de compte et modifiez votre mot de passe en toute sécurité.
+          </p>
         </div>
 
         {/* ── Carte Récapitulative Identité Compte ── */}
