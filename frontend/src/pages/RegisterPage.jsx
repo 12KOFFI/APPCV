@@ -61,13 +61,21 @@ export default function RegisterPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#F9FAFB] fade-in">
       {/* ── Colonne Gauche : Formulaire ── */}
       <div className="flex flex-col justify-between px-6 py-8 sm:px-12 lg:px-16 xl:px-24 min-h-screen">
-        {/* Logo APPCV en haut */}
-        <div className="pt-2">
+        {/* Logo APPCV et Bouton retour vers l'accueil */}
+        <div className="pt-2 flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-2.5 group">
             <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
               <FileTextIcon className="w-5 h-5 text-white" />
             </div>
             <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
+          </Link>
+
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-2xs"
+            title="Retourner à la page d'accueil"
+          >
+            <span>← Retour à l'accueil</span>
           </Link>
         </div>
 
