@@ -1,4 +1,6 @@
 import { useState, useRef } from 'react';
+import Badge from './ui/Badge';
+import { UploadIcon, FileTextIcon, CheckCircleIcon, AlertCircleIcon } from './ui/Icons';
 
 export default function FileDropzone({ onFichierSelectionne, disabled }) {
   const [estSurvole, setEstSurvole] = useState(false);
@@ -51,17 +53,15 @@ export default function FileDropzone({ onFichierSelectionne, disabled }) {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full text-left">
       <div
         onClick={() => !disabled && inputRef.current?.click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`dropzone cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center transition-all ${
-          estSurvole
-            ? 'dropzone-active border-indigo-500 bg-indigo-500/10 scale-[1.01]'
-            : 'border-slate-700 bg-slate-800/40 hover:border-slate-600 hover:bg-slate-800/70'
-        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+        className={`dropzone-saas ${estSurvole ? 'active border-slate-900 bg-slate-50' : ''} ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
       >
         <input
           ref={inputRef}
@@ -77,33 +77,43 @@ export default function FileDropzone({ onFichierSelectionne, disabled }) {
         />
 
         <div className="flex flex-col items-center justify-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-indigo-500/10 flex items-center justify-center text-2xl text-indigo-400">
-            📄
+          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-700">
+            {fichierLocal ? (
+              <FileTextIcon className="w-6 h-6 text-slate-900" />
+            ) : (
+              <UploadIcon className="w-6 h-6 text-slate-700" />
+            )}
           </div>
-          <div>
-            <p className="text-base font-medium text-slate-200">
+
+          <div className="text-center">
+            <p className="text-sm font-semibold text-slate-900">
               {fichierLocal ? (
-                <span className="text-indigo-400 font-semibold">{fichierLocal.name}</span>
+                <span className="flex items-center justify-center gap-1.5 text-slate-900">
+                  <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
+                  <span>{fichierLocal.name}</span>
+                </span>
               ) : (
-                'Glissez-déposez votre CV ici, ou cliquez pour parcourir'
+                'Glissez-déposez votre CV ici, ou parcourez vos fichiers'
               )}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Formats acceptés : PDF ou Word (.docx) — Max 5 Mo
+            <p className="text-xs text-slate-500 mt-1">
+              Documents acceptés : PDF ou Word (.docx) — Taille maximale : 5 Mo
             </p>
           </div>
+
           {fichierLocal && (
-            <span className="text-xs font-mono bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full">
+            <Badge variant="neutral" size="sm">
               {(fichierLocal.size / (1024 * 1024)).toFixed(2)} Mo
-            </span>
+            </Badge>
           )}
         </div>
       </div>
 
       {erreur && (
-        <p className="mt-3 text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg p-2.5">
-          ⚠️ {erreur}
-        </p>
+        <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
+          <AlertCircleIcon className="w-4 h-4 text-red-600 shrink-0" />
+          <span>{erreur}</span>
+        </div>
       )}
     </div>
   );

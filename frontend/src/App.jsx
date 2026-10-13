@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthProvider from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -14,9 +15,12 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
-        <main className="pt-16">
+        <main>
           <Routes>
-            {/* Routes publiques */}
+            {/* Page d'accueil publique */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* Routes publiques d'authentification */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
@@ -28,8 +32,8 @@ function App() {
               <Route path="/cv/:id/historique" element={<HistoriquePage />} />
             </Route>
 
-            {/* Toute URL inconnue → redirige vers login */}
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            {/* Toute URL inconnue → redirige vers l'accueil */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </BrowserRouter>

@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
+import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import { Card } from '../components/ui/Card';
+import {
+  FileTextIcon,
+  MailIcon,
+  LockIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+  ArrowRightIcon,
+} from '../components/ui/Icons';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +29,6 @@ export default function RegisterPage() {
     setErreur('');
     setSucces('');
 
-    // ── Validation côté client (UX, pas sécurité) ──
     if (motDePasse.length < 8) {
       setErreur('Le mot de passe doit faire au moins 8 caractères.');
       return;
@@ -31,12 +41,11 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await register(email, motDePasse);  // POST /api/inscription
-      setSucces('Compte créé avec succès ! Redirection...');
-      setTimeout(() => navigate('/login'), 1500);  // Redirige après 1.5s
+      await register(email, motDePasse);
+      setSucces('Compte créé avec succès ! Redirection vers la connexion...');
+      setTimeout(() => navigate('/login'), 1200);
     } catch (err) {
       const data = err.response?.data;
-      // Le backend renvoie "erreur" pour 409, ou "detail" pour les erreurs de validation
       setErreur(data?.erreur || data?.detail || "Erreur lors de l'inscription.");
     } finally {
       setLoading(false);
@@ -44,54 +53,98 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 fade-in">
-      <div className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-8">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 py-12 bg-slate-50 fade-in">
+      <Card className="w-full max-w-md p-8 sm:p-10 shadow-xl bg-white border-slate-200/90">
+        {/* Logo & Titre */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">Créer un compte</h1>
-          <p className="text-slate-400 mt-2">Rejoignez l'analyseur de CV intelligent</p>
+          <div className="w-11 h-11 rounded-xl bg-slate-900 flex items-center justify-center text-white mx-auto mb-4 shadow-xs">
+            <FileTextIcon className="w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Créer votre compte
+          </h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1.5">
+            Optimisez vos CV dès aujourd'hui sans carte de crédit
+          </p>
         </div>
 
+        {/* Message d'erreur */}
         {erreur && (
-          <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg p-3 mb-6 text-sm">
-            ❌ {erreur}
-          </div>
-        )}
-        {succes && (
-          <div className="bg-green-500/10 border border-green-500/30 text-green-400 rounded-lg p-3 mb-6 text-sm">
-            ✅ {succes}
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 mb-6 text-xs flex items-center gap-2.5">
+            <AlertCircleIcon className="w-4 h-4 text-red-600 shrink-0" />
+            <span>{erreur}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
-            <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.com"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
+        {/* Message de succès */}
+        {succes && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl p-3.5 mb-6 text-xs flex items-center gap-2.5">
+            <CheckCircleIcon className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{succes}</span>
           </div>
-          <div>
-            <label htmlFor="mdp" className="block text-sm font-medium text-slate-300 mb-1.5">Mot de passe</label>
-            <input id="mdp" type="password" required value={motDePasse} onChange={(e) => setMotDePasse(e.target.value)}
-              placeholder="Minimum 8 caractères"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
+        )}
+
+        {/* Formulaire accessible */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            id="email"
+            type="email"
+            label="Adresse email professionnelle"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="nom@exemple.com"
+            icon={<MailIcon className="w-4 h-4" />}
+          />
+
+          <Input
+            id="motDePasse"
+            type="password"
+            label="Mot de passe"
+            required
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
+            placeholder="Minimum 8 caractères"
+            helperText="8 caractères minimum recommandés."
+            icon={<LockIcon className="w-4 h-4" />}
+          />
+
+          <Input
+            id="confirmMotDePasse"
+            type="password"
+            label="Confirmation du mot de passe"
+            required
+            value={confirmMotDePasse}
+            onChange={(e) => setConfirmMotDePasse(e.target.value)}
+            placeholder="••••••••"
+            icon={<LockIcon className="w-4 h-4" />}
+          />
+
+          <div className="pt-2">
+            <Button
+              type="submit"
+              disabled={loading}
+              loading={loading}
+              variant="primary"
+              size="lg"
+              className="w-full shadow-md"
+            >
+              <span>Créer mon compte</span>
+              <ArrowRightIcon className="w-4 h-4 ml-1" />
+            </Button>
           </div>
-          <div>
-            <label htmlFor="confirm" className="block text-sm font-medium text-slate-300 mb-1.5">Confirmer le mot de passe</label>
-            <input id="confirm" type="password" required value={confirmMotDePasse} onChange={(e) => setConfirmMotDePasse(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition" />
-          </div>
-          <button type="submit" disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition">
-            {loading ? 'Création...' : "S'inscrire"}
-          </button>
         </form>
 
-        <p className="text-center text-slate-400 mt-6 text-sm">
-          Déjà un compte ?{' '}
-          <Link to="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">Se connecter</Link>
-        </p>
-      </div>
+        {/* Pied de formulaire */}
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+          <p className="text-xs text-slate-500">
+            Vous avez déjà un compte ?{' '}
+            <Link to="/login" className="text-slate-900 font-semibold hover:underline">
+              Se connecter
+            </Link>
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }
