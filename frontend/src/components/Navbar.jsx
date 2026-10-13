@@ -9,7 +9,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (location.pathname === '/login' || location.pathname === '/register') {
+  if (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/dashboard') {
     return null;
   }
 
