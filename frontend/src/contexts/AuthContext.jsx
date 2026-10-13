@@ -36,22 +36,27 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   // ── 5. Connexion ──
-  // Ton security.yaml a : password_path: motDePasse
   async function login(email, motDePasse) {
-    const res = await client.post('/api/connexion', { email, motDePasse });
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const res = await client.post('/api/connexion', { email: cleanEmail, motDePasse });
     const nouveauToken = res.data.token;
-    localStorage.setItem('token', nouveauToken);  // Stocker le JWT
+    localStorage.setItem('token', nouveauToken);
     setToken(nouveauToken);
-    // Maintenant qu'on a le token, récupérer les infos user
-    const userRes = await client.get('/api/moi');
-    setUser(userRes.data);
+
+    try {
+      const userRes = await client.get('/api/moi', {
+        headers: { Authorization: `Bearer ${nouveauToken}` },
+      });
+      setUser(userRes.data);
+    } catch {
+      setUser({ email: cleanEmail });
+    }
   }
 
   // ── 6. Inscription ──
   async function register(email, motDePasse) {
-    await client.post('/api/inscription', { email, motDePasse });
-    // On ne connecte PAS automatiquement après l'inscription
-    // L'utilisateur devra aller sur la page login
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    await client.post('/api/inscription', { email: cleanEmail, motDePasse });
   }
 
   // ── 7. Déconnexion ──

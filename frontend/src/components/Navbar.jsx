@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
-import { FileTextIcon, PlusIcon } from './ui/Icons';
+import { FileTextIcon, PlusIcon, UserIcon, LogOutIcon } from './ui/Icons';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -54,6 +54,16 @@ export default function Navbar() {
                 >
                   Téléverser un CV
                 </NavLink>
+                <NavLink
+                  to="/profil"
+                  className={({ isActive }) =>
+                    `transition-colors hover:text-slate-900 ${
+                      isActive ? 'text-slate-900 font-semibold' : ''
+                    }`
+                  }
+                >
+                  Mon Profil
+                </NavLink>
               </>
             ) : (
               <>
@@ -81,16 +91,25 @@ export default function Navbar() {
                   Nouveau CV
                 </Button>
               </Link>
-              <div className="hidden lg:flex flex-col text-right">
-                <span className="text-xs font-semibold text-slate-900 truncate max-w-[160px]">{user.email}</span>
-                <span className="text-[10px] text-slate-400">Compte vérifié</span>
-              </div>
+              <Link
+                to="/profil"
+                className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors"
+                title="Gérer mon profil"
+              >
+                <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-700">
+                  <UserIcon className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex flex-col text-left pr-1">
+                  <span className="text-xs font-semibold text-slate-900 truncate max-w-[130px] leading-tight">{user.email}</span>
+                  <span className="text-[10px] text-slate-500 leading-tight">Mon Profil</span>
+                </div>
+              </Link>
               <Button
-                variant="ghost"
+                variant="danger"
                 size="sm"
                 onClick={handleLogout}
-                className="text-slate-600 hover:text-red-600"
               >
+                <LogOutIcon className="w-3.5 h-3.5" />
                 Déconnexion
               </Button>
             </div>

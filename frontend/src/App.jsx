@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import UploadPage from './pages/UploadPage';
 import AnalysePage from './pages/AnalysePage';
 import HistoriquePage from './pages/HistoriquePage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/upload" element={<UploadPage />} />
+              <Route path="/profil" element={<ProfilePage />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/cv/:id/analyse" element={<AnalysePage />} />
               <Route path="/cv/:id/historique" element={<HistoriquePage />} />
             </Route>

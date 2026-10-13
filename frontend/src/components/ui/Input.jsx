@@ -10,6 +10,7 @@ export default function Input({
   required = false,
   disabled = false,
   icon = null,
+  rightElement = null,
   className = '',
   ...props
 }) {
@@ -37,14 +38,20 @@ export default function Input({
           required={required}
           disabled={disabled}
           className={`w-full text-sm text-slate-900 bg-white border rounded-xl transition-all duration-150 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent ${
-            icon ? 'pl-10 pr-3.5' : 'px-3.5'
-          } py-2.5 ${
+            icon ? 'pl-10' : 'pl-3.5'
+          } ${rightElement ? 'pr-10' : 'pr-3.5'} py-2.5 ${
             error
               ? 'border-red-300 bg-red-50/30 text-red-900 focus:ring-red-500'
               : 'border-slate-200 hover:border-slate-300'
           } ${disabled ? 'opacity-50 cursor-not-allowed bg-slate-50' : ''} ${className}`}
           {...props}
         />
+
+        {rightElement && (
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+            {rightElement}
+          </div>
+        )}
       </div>
 
       {error ? (

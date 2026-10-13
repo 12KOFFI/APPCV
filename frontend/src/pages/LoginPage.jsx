@@ -4,11 +4,12 @@ import { useAuth } from '../contexts/useAuth';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
-import { FileTextIcon, MailIcon, LockIcon, AlertCircleIcon, ArrowRightIcon } from '../components/ui/Icons';
+import { FileTextIcon, MailIcon, LockIcon, AlertCircleIcon, ArrowRightIcon, EyeIcon, EyeOffIcon } from '../components/ui/Icons';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
+  const [showMotDePasse, setShowMotDePasse] = useState(false);
   const [erreur, setErreur] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +25,13 @@ export default function LoginPage() {
       await login(email, motDePasse);
       navigate('/dashboard');
     } catch (err) {
-      setErreur(err.response?.data?.message || 'Email ou mot de passe incorrect.');
+      if (err.response?.status === 401 || err.response?.data?.message === 'Invalid credentials.') {
+        setErreur('Adresse email ou mot de passe incorrect.');
+      } else if (!err.response) {
+        setErreur('Impossible de contacter le serveur. Veuillez vérifier que le serveur est démarré.');
+      } else {
+        setErreur(err.response?.data?.message || 'Une erreur est survenue lors de la connexion.');
+      }
     } finally {
       setLoading(false);
     }
@@ -69,13 +76,23 @@ export default function LoginPage() {
 
           <Input
             id="motDePasse"
-            type="password"
+            type={showMotDePasse ? 'text' : 'password'}
             label="Mot de passe"
             required
             value={motDePasse}
             onChange={(e) => setMotDePasse(e.target.value)}
             placeholder="••••••••"
             icon={<LockIcon className="w-4 h-4" />}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowMotDePasse(!showMotDePasse)}
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                title={showMotDePasse ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showMotDePasse ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+              </button>
+            }
           />
 
           <div className="pt-2">

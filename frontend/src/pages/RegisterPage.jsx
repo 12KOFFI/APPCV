@@ -11,12 +11,16 @@ import {
   AlertCircleIcon,
   CheckCircleIcon,
   ArrowRightIcon,
+  EyeIcon,
+  EyeOffIcon,
 } from '../components/ui/Icons';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [confirmMotDePasse, setConfirmMotDePasse] = useState('');
+  const [showMotDePasse, setShowMotDePasse] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [erreur, setErreur] = useState('');
   const [succes, setSucces] = useState('');
   const [loading, setLoading] = useState(false);
@@ -99,7 +103,7 @@ export default function RegisterPage() {
 
           <Input
             id="motDePasse"
-            type="password"
+            type={showMotDePasse ? 'text' : 'password'}
             label="Mot de passe"
             required
             value={motDePasse}
@@ -107,17 +111,37 @@ export default function RegisterPage() {
             placeholder="Minimum 8 caractères"
             helperText="8 caractères minimum recommandés."
             icon={<LockIcon className="w-4 h-4" />}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowMotDePasse(!showMotDePasse)}
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                title={showMotDePasse ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showMotDePasse ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+              </button>
+            }
           />
 
           <Input
             id="confirmMotDePasse"
-            type="password"
+            type={showConfirm ? 'text' : 'password'}
             label="Confirmation du mot de passe"
             required
             value={confirmMotDePasse}
             onChange={(e) => setConfirmMotDePasse(e.target.value)}
             placeholder="••••••••"
             icon={<LockIcon className="w-4 h-4" />}
+            rightElement={
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                title={showConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+              >
+                {showConfirm ? <EyeOffIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+              </button>
+            }
           />
 
           <div className="pt-2">

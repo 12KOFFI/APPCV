@@ -8,27 +8,27 @@ const client = axios.create({
 
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config; 
 });
 
-
 client.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isConnexionUrl = error.config?.url?.includes('/api/connexion');
+
+    if (error.response?.status === 401 && !isConnexionUrl) {
       const token = localStorage.getItem('token');
       if (token) {
-        // Le token existait mais le serveur l'a refusé = il a expiré
         localStorage.removeItem('token');
-        window.location.href = '/login';
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
       }
-      // Si pas de token, c'est normal (ex: mauvais mot de passe sur /api/connexion)
-      // → on ne redirige PAS, on laisse le composant gérer l'erreur
     }
-    return Promise.reject(error);  // On propage l'erreur au composant appelant
+    return Promise.reject(error);
   }
 );
 
