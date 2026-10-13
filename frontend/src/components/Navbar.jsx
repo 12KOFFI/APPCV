@@ -47,7 +47,7 @@ export default function Navbar() {
                     }`
                   }
                 >
-                  Dashboard
+                  Tableau de bord
                 </NavLink>
                 <NavLink
                   to="/upload"

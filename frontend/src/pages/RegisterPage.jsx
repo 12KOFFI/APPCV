@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/useAuth';
 import AuthIllustration from '../components/auth/AuthIllustration';
 import {
   FileTextIcon,
-  GlobeIcon,
   EyeIcon,
   EyeOffIcon,
   AlertCircleIcon,
@@ -62,31 +61,25 @@ export default function RegisterPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#F9FAFB] fade-in">
       {/* ── Colonne Gauche : Formulaire ── */}
       <div className="flex flex-col justify-between px-6 py-8 sm:px-12 lg:px-16 xl:px-24 min-h-screen">
-        {/* En-tête : Sélecteur de langue */}
-        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
-          <GlobeIcon className="w-4 h-4 text-slate-400" />
-          <span>Select Language</span>
+        {/* Logo APPCV en haut */}
+        <div className="pt-2">
+          <Link to="/" className="inline-flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
+              <FileTextIcon className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
+          </Link>
         </div>
 
         {/* Corps central du formulaire */}
         <div className="w-full max-w-md mx-auto my-auto py-6">
-          {/* Logo APPCV */}
-          <div className="mb-6">
-            <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
-                <FileTextIcon className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
-            </Link>
-          </div>
-
           {/* Titre & Sous-titre */}
           <div className="mb-6 text-left">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Welcome
+              Bienvenue
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Create an account to continue to APPCV
+              Créez votre compte pour commencer vos analyses de CV
             </p>
           </div>
 
@@ -110,7 +103,7 @@ export default function RegisterPage() {
             {/* Champ Email */}
             <div className="space-y-1 text-left">
               <label htmlFor="email" className="block text-xs font-semibold text-slate-700">
-                E-mail <span className="text-blue-500">*</span>
+                Adresse e-mail <span className="text-blue-500">*</span>
               </label>
               <input
                 id="email"
@@ -118,16 +111,16 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-mail"
+                placeholder="nom@exemple.com"
                 className="w-full text-sm text-slate-900 bg-[#F3F4F6] border border-slate-200/90 rounded-lg px-3.5 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
             </div>
 
-            {/* Rangée 2 colonnes : Password & Confirm Password */}
+            {/* Rangée 2 colonnes : Mot de passe & Confirmation */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
               <div className="space-y-1">
                 <label htmlFor="motDePasse" className="block text-xs font-semibold text-slate-700">
-                  Password <span className="text-blue-500">*</span>
+                  Mot de passe <span className="text-blue-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -136,14 +129,14 @@ export default function RegisterPage() {
                     required
                     value={motDePasse}
                     onChange={(e) => setMotDePasse(e.target.value)}
-                    placeholder="Password"
+                    placeholder="Minimum 8 caractères"
                     className="w-full text-sm text-slate-900 bg-[#F3F4F6] border border-slate-200/90 rounded-lg pl-3 pr-8 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowMotDePasse(!showMotDePasse)}
                     className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                    title={showMotDePasse ? 'Masquer' : 'Afficher'}
+                    title={showMotDePasse ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
                     {showMotDePasse ? <EyeOffIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
                   </button>
@@ -152,7 +145,7 @@ export default function RegisterPage() {
 
               <div className="space-y-1">
                 <label htmlFor="confirmMotDePasse" className="block text-xs font-semibold text-slate-700">
-                  Confirm Password <span className="text-blue-500">*</span>
+                  Confirmer le mot de passe <span className="text-blue-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -161,14 +154,14 @@ export default function RegisterPage() {
                     required
                     value={confirmMotDePasse}
                     onChange={(e) => setConfirmMotDePasse(e.target.value)}
-                    placeholder="Confirm Password"
+                    placeholder="Retapez le mot de passe"
                     className="w-full text-sm text-slate-900 bg-[#F3F4F6] border border-slate-200/90 rounded-lg pl-3 pr-8 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
                     className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
-                    title={showConfirm ? 'Masquer' : 'Afficher'}
+                    title={showConfirm ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
                     {showConfirm ? <EyeOffIcon className="w-3.5 h-3.5" /> : <EyeIcon className="w-3.5 h-3.5" />}
                   </button>
@@ -187,10 +180,10 @@ export default function RegisterPage() {
                 className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
               />
               <label htmlFor="agreeTerms" className="text-xs text-slate-600 leading-tight cursor-pointer">
-                Agree with our{' '}
-                <span className="text-blue-600 font-semibold hover:underline">Terms of service</span>{' '}
-                and{' '}
-                <span className="text-blue-600 font-semibold hover:underline">Privacy and Policy</span>{' '}
+                J'accepte les{' '}
+                <span className="text-blue-600 font-semibold hover:underline">Conditions d'utilisation</span>{' '}
+                et la{' '}
+                <span className="text-blue-600 font-semibold hover:underline">Politique de confidentialité</span>{' '}
                 <span className="text-blue-500">*</span>
               </label>
             </div>
@@ -203,7 +196,7 @@ export default function RegisterPage() {
                 className="w-full py-3.5 px-6 rounded-full bg-[#0B132B] hover:bg-slate-800 text-white font-semibold text-sm transition-all duration-150 shadow-sm cursor-pointer disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 {loading && <div className="spinner-sm" />}
-                <span>Create an account</span>
+                <span>Créer mon compte</span>
               </button>
             </div>
           </form>
@@ -211,9 +204,9 @@ export default function RegisterPage() {
           {/* Lien vers connexion */}
           <div className="text-left mt-6">
             <p className="text-xs text-slate-600">
-              Already have an account?{' '}
+              Vous avez déjà un compte ?{' '}
               <Link to="/login" className="text-blue-600 font-semibold hover:underline">
-                Sign in
+                Se connecter
               </Link>
             </p>
           </div>
@@ -234,7 +227,7 @@ export default function RegisterPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0E3D69] text-white text-xs font-semibold shadow-md hover:bg-[#0B3154] transition-colors cursor-pointer"
           >
             <HelpCircleIcon className="w-3.5 h-3.5 text-white" />
-            <span>Help</span>
+            <span>Aide</span>
           </button>
         </div>
       </div>

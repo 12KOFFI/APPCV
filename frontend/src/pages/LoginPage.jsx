@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/useAuth';
 import AuthIllustration from '../components/auth/AuthIllustration';
 import {
   FileTextIcon,
-  GlobeIcon,
   EyeIcon,
   EyeOffIcon,
   AlertCircleIcon,
@@ -46,32 +45,26 @@ export default function LoginPage() {
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#F9FAFB] fade-in">
       {/* ── Colonne Gauche : Formulaire ── */}
       <div className="flex flex-col justify-between px-6 py-8 sm:px-12 lg:px-16 xl:px-24 min-h-screen">
-        {/* En-tête : Sélecteur de langue */}
-        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium">
-          <GlobeIcon className="w-4 h-4 text-slate-400" />
-          <span>Select Language</span>
+        {/* Logo APPCV en haut */}
+        <div className="pt-2">
+          <Link to="/" className="inline-flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
+              <FileTextIcon className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
+          </Link>
         </div>
 
         {/* Corps central du formulaire */}
         <div className="w-full max-w-md mx-auto my-auto py-8">
-          {/* Logo APPCV */}
-          <div className="mb-10">
-            <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
-                <FileTextIcon className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
-            </Link>
-          </div>
-
           {/* Titre */}
-          <h1 className="text-2xl font-bold text-slate-900 mb-8 tracking-tight">
-            Welcome Back!
+          <h1 className="text-2xl font-bold text-slate-900 mb-8 tracking-tight text-left">
+            Bon retour parmi nous !
           </h1>
 
           {/* Bannière d'erreur */}
           {erreur && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 mb-6 text-xs flex items-center gap-2.5">
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 mb-6 text-xs flex items-center gap-2.5 text-left">
               <AlertCircleIcon className="w-4 h-4 text-red-600 shrink-0" />
               <span>{erreur}</span>
             </div>
@@ -82,7 +75,7 @@ export default function LoginPage() {
             {/* Champ Email */}
             <div className="space-y-1.5 text-left">
               <label htmlFor="email" className="block text-xs font-semibold text-slate-700">
-                E-mail <span className="text-blue-500">*</span>
+                Adresse e-mail <span className="text-blue-500">*</span>
               </label>
               <input
                 id="email"
@@ -90,7 +83,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Type your Email"
+                placeholder="nom@exemple.com"
                 className="w-full text-sm text-slate-900 bg-[#F3F4F6] border border-slate-200/90 rounded-lg px-3.5 py-3 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
               />
             </div>
@@ -99,10 +92,10 @@ export default function LoginPage() {
             <div className="space-y-1.5 text-left">
               <div className="flex items-center justify-between">
                 <label htmlFor="motDePasse" className="block text-xs font-semibold text-slate-700">
-                  Password <span className="text-blue-500">*</span>
+                  Mot de passe <span className="text-blue-500">*</span>
                 </label>
                 <span className="text-xs text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                  Forgot your password?
+                  Mot de passe oublié ?
                 </span>
               </div>
               <div className="relative">
@@ -112,7 +105,7 @@ export default function LoginPage() {
                   required
                   value={motDePasse}
                   onChange={(e) => setMotDePasse(e.target.value)}
-                  placeholder="Type your Password"
+                  placeholder="Saisissez votre mot de passe"
                   className="w-full text-sm text-slate-900 bg-[#F3F4F6] border border-slate-200/90 rounded-lg pl-3.5 pr-10 py-3 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
                 />
                 <button
@@ -134,7 +127,7 @@ export default function LoginPage() {
                 className="w-full py-3.5 px-6 rounded-full bg-[#0B132B] hover:bg-slate-800 text-white font-semibold text-sm transition-all duration-150 shadow-sm cursor-pointer disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 {loading && <div className="spinner-sm" />}
-                <span>Sign in</span>
+                <span>Se connecter</span>
               </button>
             </div>
           </form>
@@ -142,9 +135,9 @@ export default function LoginPage() {
           {/* Lien vers inscription */}
           <div className="text-left mt-6">
             <p className="text-xs text-slate-600">
-              Not registered?{' '}
+              Pas encore inscrit ?{' '}
               <Link to="/register" className="text-blue-600 font-semibold hover:underline">
-                Create an account.
+                Créer un compte.
               </Link>
             </p>
           </div>
@@ -165,7 +158,7 @@ export default function LoginPage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0E3D69] text-white text-xs font-semibold shadow-md hover:bg-[#0B3154] transition-colors cursor-pointer"
           >
             <HelpCircleIcon className="w-3.5 h-3.5 text-white" />
-            <span>Help</span>
+            <span>Aide</span>
           </button>
         </div>
       </div>
