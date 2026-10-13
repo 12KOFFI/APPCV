@@ -9,3 +9,8 @@
 
 controllers:
     resource: routing.controllers
+
+
+api_connexion:
+    path: /api/connexion
+    methods: [POST]

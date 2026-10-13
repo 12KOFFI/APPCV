@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport d'audit CV - #{{ analyse.id }}</title>
+    <style>
+        @page {
+            margin: 25px 30px;
+        }
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .header {
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0f172a;
+            margin: 0;
+        }
+        .header-subtitle {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .score-box {
+            text-align: right;
+        }
+        .score-badge {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-align: center;
+            background-color: {% if analyse.note >= 70 %}#ecfdf5{% elseif analyse.note >= 50 %}#fffbeb{% else %}#fff1f2{% endif %};
+            border: 1px solid {% if analyse.note >= 70 %}#10b981{% elseif analyse.note >= 50 %}#f59e0b{% else %}#f43f5e{% endif %};
+        }
+        .score-valeur {
+            font-size: 24px;
+            font-weight: bold;
+            color: {% if analyse.note >= 70 %}#047857{% elseif analyse.note >= 50 %}#b45309{% else %}#be123c{% endif %};
+        }
+        .score-max {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .meta-info {
+            background-color: #f8fafc;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .meta-table {
+            width: 100%;
+            font-size: 11px;
+        }
+        .meta-label {
+            color: #64748b;
+            font-weight: bold;
+            width: 25%;
+        }
+        .meta-value {
+            color: #1e293b;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #4338ca;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e0e7ff;
+            padding-bottom: 4px;
+        }
+        .two-cols {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .two-cols td {
+            width: 50%;
+            vertical-align: top;
+            padding-right: 10px;
+        }
+        .two-cols td:last-child {
+            padding-right: 0;
+            padding-left: 10px;
+        }
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+        .card-fort {
+            border-left: 3px solid #10b981;
+        }
+        .card-faible {
+            border-left: 3px solid #f43f5e;
+        }
+        .card-item {
+            font-size: 11px;
+            color: #334155;
+            margin: 0;
+        }
+        .competences-container {
+            margin-bottom: 15px;
+        }
+        .badge-skill {
+            display: inline-block;
+            background-color: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .recommandation-item {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
+        .recommandation-num {
+            display: inline-block;
+            background-color: #6366f1;
+            color: #ffffff;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            font-size: 10px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .recommandation-text {
+            display: inline-block;
+            font-size: 11px;
+            color: #1e293b;
+            vertical-align: middle;
+            width: 92%;
+        }
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+            text-align: center;
+            font-size: 10px;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <table class="header-table">
+            <tr>
+                <td>
+                    <h1 class="header-title">ANALYSEUR DE CV IA</h1>
+                    <div class="header-subtitle">Rapport d'audit de profil et recommandations stratégiques</div>
+                </td>
+                <td class="score-box">
+                    <div class="score-badge">
+                        <div class="score-valeur">{{ analyse.note ?? 0 }}</div>
+                        <div class="score-max">Score / 100</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Informations Générales -->
+    <div class="meta-info">
+        <table class="meta-table">
+            <tr>
+                <td class="meta-label">Document analysé :</td>
+                <td class="meta-value">{{ analyse.cv.nomOriginal }}</td>
+                <td class="meta-label">Date du diagnostic :</td>
+                <td class="meta-value">{{ analyse.creeLe|date('d/m/Y à H:i') }}</td>
+            </tr>
+            <tr>
+                <td class="meta-label">Candidat :</td>
+                <td class="meta-value">{{ analyse.cv.proprietaire ? analyse.cv.proprietaire.email : 'Non renseigné' }}</td>
+                <td class="meta-label">Type d'audit :</td>
+                <td class="meta-value">{% if analyse.texteOffre %}Adéquation à une offre ciblée{% else %}Audit généraliste de profil{% endif %}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Points Forts & Points Faibles -->
+    <table class="two-cols">
+        <tr>
+            <td>
+                <div class="section-title">Points Forts Identifiés</div>
+                {% if analyse.pointsForts is defined and analyse.pointsForts is not empty %}
+                    {% for fort in analyse.pointsForts %}
+                        <div class="card card-fort">
+                            <p class="card-item">{{ fort }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="card-item" style="color: #64748b;">Aucun point fort mentionné.</p>
+                {% endif %}
+            </td>
+            <td>
+                <div class="section-title">Axes d'Amélioration</div>
+                {% if analyse.pointsFaibles is defined and analyse.pointsFaibles is not empty %}
+                    {% for faible in analyse.pointsFaibles %}
+                        <div class="card card-faible">
+                            <p class="card-item">{{ faible }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="card-item" style="color: #64748b;">Aucun point faible mentionné.</p>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <!-- Compétences Détectées -->
+    {% if analyse.competences is defined and analyse.competences is not empty %}
+        <div class="section-title">Compétences Clés Détectées</div>
+        <div class="competences-container">
+            {% for comp in analyse.competences %}
+                <span class="badge-skill">{{ comp }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Recommandations prioritaires -->
+    {% if analyse.recommandations is defined and analyse.recommandations is not empty %}
+        <div class="section-title">Plan d'Action & Recommandations Prioritaires</div>
+        {% for rec in analyse.recommandations %}
+            <div class="recommandation-item">
+                <span class="recommandation-num">{{ loop.index }}</span>
+                <span class="recommandation-text">{{ rec }}</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer">
+        Document généré automatiquement par le moteur d'analyse IA • Rapport strictement confidentiel • Réf : #{{ analyse.id }}
+    </div>
+
+</body>
+</html>

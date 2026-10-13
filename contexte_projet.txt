@@ -1,0 +1,102 @@
+# ==============================================================================
+# PROJET ANALYSEUR DE CV PAR IA - CONTEXTE, ARCHITECTURE ET MÉMO TECHNIQUE
+# ==============================================================================
+
+Ce document résume l'intégralité du travail réalisé, l'architecture mise en place, 
+les concepts clés et les questions d'entretien technique pour les étapes 0 à 5.
+
+================================================================================
+1. VUE D'ENSEMBLE & STACK TECHNIQUE
+================================================================================
+- Backend : Symfony 7.4 (API REST pure, architecture stateless).
+- Base de données : MySQL 9.1 (Moteur forcé en InnoDB pour le support des clés étrangères et transactions).
+- Frontend : React 19 + Vite (prévu à l'étape 8).
+- IA : API Anthropic Claude (via HTTP Client scopé + Tool Use pour forcer une sortie JSON stricte).
+- Sécurité : JWT (LexikJWTAuthenticationBundle) avec paire de clés asymétriques RSA (RS256).
+
+================================================================================
+2. HISTORIQUE DÉTAILLÉ DES ÉTAPES COMPLÉTÉES
+================================================================================
+
+--- ÉTAPE 0 : Setup & Initialisation ---
+- Création du projet Symfony 7.4 et React / Vite.
+- Configuration CORS avec NelmioCorsBundle (autorisant http://localhost:5173).
+- Contrôleur de santé : GET /api/sante.
+
+--- ÉTAPE 1 : Authentification & JWT ---
+- Notions clés :
+  * Stateless : Le serveur ne stocke aucune session en mémoire ou en BDD pour l'authentification. 
+    Chaque requête porte le token JWT dans l'en-tête "Authorization: Bearer <token>".
+  * Hachage vs Chiffrement : Le mot de passe est haché de manière irréversible (algorithme 'auto' = bcrypt / Argon2id).
+  * DTO (Data Transfer Object) : `InscriptionDto` avec contraintes de validation (`#[Assert\Email]`, `#[Assert\Length]`).
+    Empêche le Mass Assignment (ex: un utilisateur ne peut pas s'injecter le rôle ROLE_ADMIN).
+  * Différence 401 vs 403 : 
+    - 401 Unauthorized = Non authentifié (qui es-tu ? token manquant ou invalide).
+    - 403 Forbidden = Authentifié mais non autorisé (tu n'as pas le droit d'accéder à cette ressource).
+- Endpoints créés :
+  * POST /api/inscription (201 Created)
+  * POST /api/connexion (géré par json_login + Lexik, renvoie le token)
+  * GET /api/moi (protégé, renvoie l'utilisateur connecté via #[CurrentUser])
+
+--- ÉTAPE 2 : Upload sécurisé du CV ---
+- Notions clés :
+  * Validation du type MIME réel via `fileinfo` (`getMimeType()` qui lit les magic bytes / signature du fichier),
+    et NON via l'extension ou `getClientMimeType()` qui sont falsifiables par le client.
+  * Stockage hors de `public/` : Les fichiers sont envoyés dans `var/uploads/cv` (non accessible par URL directe, 
+    empêche l'exécution de scripts malveillants).
+  * Renommage aléatoire via `bin2hex(random_bytes(16))` : Empêche l'écrasement de fichiers, le path traversal (`../../`),
+    et ne divulgue pas le nom d'origine.
+  * Upload sans compte : Génération d'un `jetonAcces` sécurisé (`random_bytes(32)`) agissant comme un ticket de vestiaire 
+    pour rattacher le CV plus tard lors de la connexion.
+  * Bug MyISAM vs InnoDB résolu : MySQL sous WAMP créait les tables en MyISAM (limite d'index à 1000 octets). 
+    Correction dans `doctrine.yaml` avec `default_table_options: { engine: InnoDB }` pour supporter les clés étrangères 
+    et l'intégrité référentielle (ON DELETE CASCADE pour le RGPD).
+- Endpoints créés :
+  * POST /api/cv (reçoit multipart/form-data avec le champ `cv`, limite à 5 Mo, PDF et DOCX uniquement).
+
+--- ÉTAPE 3 : Extraction de texte (PDF & Word DOCX) ---
+- Outils :
+  * PDF : `smalot/pdfparser` (100% PHP natif).
+  * DOCX : `ZipArchive` natif. Un fichier .docx est une archive ZIP contenant `word/document.xml`.
+- Sécurité :
+  * Protection contre les Zip Bombs : limitation stricte de la taille décompressée (`statName` et lecture plafonnée à 20 Mo).
+  * Nettoyage du texte (`strip_tags`, normalisation UTF-8, réduction des espaces).
+  * Détection des PDF scannés (moins de 50 caractères extraits = exception `ExtractionImpossibleException`).
+  * Suppression immédiate du fichier orphelin sur disque si l'extraction échoue.
+- Base de données :
+  * Ajout du champ `texte_extrait LONGTEXT` sur l'entité `Cv`.
+
+--- ÉTAPES 4 & 5 : Intégration IA Claude & Sortie Structurée ---
+- Notions clés :
+  * Gestion des secrets : Clé API stockée dans le coffre chiffré Symfony (`secrets:set CLAUDE_API_KEY`) avec libsodium.
+    Clé de déchiffrement locale exclue de Git (`config/secrets/dev/dev.decrypt.private.php` dans `.gitignore`).
+  * Configuration déclarative : `config/packages/claude.yaml` définissant un client HTTP scopé avec `base_uri`, 
+    en-têtes Anthropic, timeouts et retries automatiques sur 429 et 5xx.
+  * Nom du modèle configurable dans `.env` (`CLAUDE_MODELE`) pour découpler le code de la version du modèle.
+  * Tool Use (Structured Outputs) : Au lieu de demander naïvement du JSON dans le prompt (fragile), on déclare 
+    un outil `enregistrer_analyse` avec un JSON Schema strict et on force Claude à l'appeler via `tool_choice`.
+  * DTO & Contrôle qualité : `AnalyseCvDto` vérifie que la réponse de l'IA contient exactement 5 recommandations,
+    une note sur 100, et des listes de chaînes de caractères valides.
+  * Anti-Prompt Injection : Le texte du CV est encapsulé entre des balises `<cv>...</cv>`, nettoyé des balises internes,
+    et le prompt système stipule explicitement que son contenu est une donnée passive et non une instruction.
+- Endpoints créés :
+  * POST /api/cv/{id}/analyse (vérification IDOR : un utilisateur ne peut analyser que ses propres CV).
+
+================================================================================
+3. POINTS CLÉS POUR LES ENTRETIENS TECHNIQUES
+================================================================================
+1. "Pourquoi JWT stateless plutôt que session PHP classique ?"
+   -> Meilleure scalabilité horizontale (pas besoin de session partagée comme Redis sur plusieurs serveurs), 
+      idéal pour découpler complètement une API REST d'un front React/Mobile. Revers : révocation difficile avant expiration.
+
+2. "Pourquoi valider le type de fichier avec fileinfo et pas l'extension ?"
+   -> L'extension et le header Content-Type sont contrôlés à 100% par le client. Fileinfo lit la signature binaire réelle 
+      (magic bytes, ex: %PDF).
+
+3. "Pourquoi forcer du Tool Use plutôt qu'un prompt demandant du JSON ?"
+   -> Les LLMs génèrent du texte probabiliste. Demander du JSON amène parfois du texte introductif ("Voici le JSON:") ou un format 
+      invalide. Le Tool Use force le moteur d'inférence à générer un payload conforme au schéma JSON fourni.
+
+4. "Que faire si l'API d'IA tombe en panne ou est lente ?"
+   -> Timeouts + retries configurés dans le client HTTP. Erreur traduite en 502 Bad Gateway (le serveur a agi comme passerelle 
+      et le tiers a échoué) plutôt qu'un crash 500 interne. Et pour la lenteur : traitement asynchrone via Symfony Messenger.
