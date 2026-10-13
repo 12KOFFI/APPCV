@@ -36,14 +36,14 @@ export default function Navbar() {
           </Link>
 
           {/* ── Navigation Liens (Desktop) ── */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
             {user ? (
               <>
                 <NavLink
                   to="/dashboard"
                   className={({ isActive }) =>
-                    `transition-colors hover:text-slate-900 ${
-                      isActive ? 'text-slate-900 font-semibold' : ''
+                    `relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-slate-900 after:transition-all after:duration-200 ${
+                      isActive ? 'text-slate-900 font-bold after:w-full' : 'after:w-0 hover:after:w-full'
                     }`
                   }
                 >
@@ -52,8 +52,8 @@ export default function Navbar() {
                 <NavLink
                   to="/upload"
                   className={({ isActive }) =>
-                    `transition-colors hover:text-slate-900 ${
-                      isActive ? 'text-slate-900 font-semibold' : ''
+                    `relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-slate-900 after:transition-all after:duration-200 ${
+                      isActive ? 'text-slate-900 font-bold after:w-full' : 'after:w-0 hover:after:w-full'
                     }`
                   }
                 >
@@ -62,8 +62,8 @@ export default function Navbar() {
                 <NavLink
                   to="/profil"
                   className={({ isActive }) =>
-                    `transition-colors hover:text-slate-900 ${
-                      isActive ? 'text-slate-900 font-semibold' : ''
+                    `relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:bg-slate-900 after:transition-all after:duration-200 ${
+                      isActive ? 'text-slate-900 font-bold after:w-full' : 'after:w-0 hover:after:w-full'
                     }`
                   }
                 >
@@ -72,13 +72,22 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <a href="#fonctionnalites" className="transition-colors hover:text-slate-900">
-                  Fonctionnalités
-                </a>
-                <a href="#comment-ca-marche" className="transition-colors hover:text-slate-900">
+                <a
+                  href="#comment-ca-marche"
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                >
                   Comment ça marche
                 </a>
-                <a href="#faq" className="transition-colors hover:text-slate-900">
+                <a
+                  href="#fonctionnalites"
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                >
+                  Fonctionnalités
+                </a>
+                <a
+                  href="#faq"
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                >
                   FAQ
                 </a>
               </>
@@ -98,7 +107,7 @@ export default function Navbar() {
               </Link>
               <Link
                 to="/profil"
-                className="hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors"
+                className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors"
                 title="Gérer mon profil"
               >
                 <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-700">
@@ -119,16 +128,22 @@ export default function Navbar() {
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Link to="/login">
-                <Button variant="ghost" size="sm">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-md text-xs font-semibold text-slate-800 bg-slate-100/90 hover:bg-slate-200 transition-all hover:-translate-y-0.5 cursor-pointer"
+                >
                   Connexion
-                </Button>
+                </button>
               </Link>
               <Link to="/register">
-                <Button variant="primary" size="sm">
+                <button
+                  type="button"
+                  className="px-5 py-2 rounded-md text-xs font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs hover:shadow-md cursor-pointer"
+                >
                   Commencer
-                </Button>
+                </button>
               </Link>
             </div>
           )}
