@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
@@ -7,6 +7,11 @@ import { FileTextIcon, PlusIcon, UserIcon, LogOutIcon } from './ui/Icons';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (location.pathname === '/login' || location.pathname === '/register') {
+    return null;
+  }
 
   function handleLogout() {
     logout();
