@@ -8,6 +8,7 @@ use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -27,14 +28,27 @@ class CreateAdminCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('email', InputArgument::OPTIONAL, 'Adresse email de l\'admin', 'admin@appcv.com')
-            ->addArgument('password', InputArgument::OPTIONAL, 'Mot de passe de l\'admin', 'Admin123456!');
+            ->addArgument('email', InputArgument::REQUIRED, 'Adresse email de l\'admin')
+            ->addArgument('password', InputArgument::OPTIONAL, 'Mot de passe (si omis, il sera demandé de façon masquée)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $email = mb_strtolower(trim((string) $input->getArgument('email')));
         $password = (string) $input->getArgument('password');
+
+        // Pas de mot de passe par défaut : saisie masquée si non fourni (évite le passage en clair dans l'historique shell)
+        if ($password === '') {
+            $question = (new Question('Mot de passe administrateur : '))
+                ->setHidden(true)
+                ->setHiddenFallback(false);
+            $password = (string) $this->getHelper('question')->ask($input, $output, $question);
+        }
+
+        if (mb_strlen($password) < 8) {
+            $output->writeln('<error>Le mot de passe doit comporter au moins 8 caractères.</error>');
+            return Command::FAILURE;
+        }
 
         $repo = $this->em->getRepository(User::class);
         $user = $repo->findOneBy(['email' => $email]);
@@ -57,7 +71,6 @@ class CreateAdminCommand extends Command
 
         $output->writeln("<info>[SUCCÈS] Administrateur configuré :</info>");
         $output->writeln("  - Email : <info>{$email}</info>");
-        $output->writeln("  - Mot de passe : <info>{$password}</info>");
         $output->writeln("  - Rôle : <info>{$user->getRole()}</info>");
 
         return Command::SUCCESS;

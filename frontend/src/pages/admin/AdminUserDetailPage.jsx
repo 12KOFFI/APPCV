@@ -5,16 +5,13 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import {
-  UserIcon,
   FileTextIcon,
   SparklesIcon,
   DownloadIcon,
   CheckCircleIcon,
   AlertCircleIcon,
-  ArrowRightIcon,
   ClockIcon,
   TargetIcon,
-  ShieldCheckIcon,
   BarChartIcon,
   KeyIcon,
 } from '../../components/ui/Icons';
@@ -230,7 +227,6 @@ export default function AdminUserDetailPage() {
   }
 
   const cvs = user.cvs || [];
-  const activeCvInfo = cvs.find((c) => c.id === selectedCvId);
   const analyse = analyseData?.analyse;
   const historique = analyseData?.historiqueAnalyses || [];
   const isAdmin = user.role === 'ROLE_ADMIN' || user.roles?.includes('ROLE_ADMIN');
@@ -682,7 +678,7 @@ export default function AdminUserDetailPage() {
                       Historique des audits IA pour ce document ({historique.length})
                     </h4>
                     <div className="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200/70 dark:border-slate-800 rounded-xl overflow-hidden">
-                      {historique.map((h, i) => (
+                      {historique.map((h) => (
                         <div key={h.id} className="p-2.5 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
                           <span className="font-mono text-slate-400 text-[11px]">Audit #{h.id}</span>
                           <span className="text-slate-500">{new Date(h.creeLe).toLocaleString('fr-FR')}</span>

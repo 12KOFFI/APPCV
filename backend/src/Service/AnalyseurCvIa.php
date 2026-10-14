@@ -21,6 +21,7 @@ final class AnalyseurCvIa
         private readonly HttpClientInterface $claudeClient,
         private readonly DenormalizerInterface $denormalizer,
         private readonly ValidatorInterface $validator,
+        private readonly LoggerInterface $logger,
         #[Autowire('%env(CLAUDE_MODELE)%')]
         private readonly string $modele,
     ) {}
@@ -76,10 +77,14 @@ final class AnalyseurCvIa
             // toArray() lance une exception si le code HTTP est une erreur (401, 429, 500...)
             $contenu = $reponse->toArray();
         } catch (\Throwable $e) {
-          $details = $e instanceof \Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface 
-                ? $e->getResponse()->getContent(false) 
+            // Détails techniques (corps de réponse Anthropic) journalisés côté serveur uniquement :
+            // ils ne doivent jamais être renvoyés au client via le champ "erreur" de l'analyse.
+            $details = $e instanceof \Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface
+                ? $e->getResponse()->getContent(false)
                 : $e->getMessage();
-            throw new AnalyseIaException("Erreur Anthropic : " . $details, 0, $e);
+            $this->logger->error('Échec de l\'appel à l\'API Claude.', ['details' => $details]);
+
+            throw new AnalyseIaException("Le service d'analyse IA est temporairement indisponible. Veuillez réessayer.", 0, $e);
         }
 
         // Si la réponse a été coupée faute de place, le JSON est incomplet

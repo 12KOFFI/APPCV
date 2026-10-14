@@ -9,6 +9,8 @@ use App\Message\AnalyserCvMessage;
 use App\Repository\AnalyseRepository;
 use App\Repository\CvRepository;
 use App\Repository\UserRepository;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\AbstractQuery;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -36,6 +38,52 @@ final class AdminController extends AbstractController
         #[Autowire('%kernel.project_dir%/var/uploads/cv')]
         private readonly string $dossierCv,
     ) {}
+
+    /** Décode le corps JSON ; garantit un tableau (évite les erreurs sur un corps scalaire ou invalide). */
+    private function corpsJson(Request $request): array
+    {
+        $data = json_decode($request->getContent(), true);
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
+     * Neutralise l'injection de formules dans les exports CSV (CSV injection) :
+     * une cellule commençant par = + - @ ou tabulation/retour chariot serait interprétée par Excel.
+     */
+    private function csvSecurise(mixed $valeur): mixed
+    {
+        if (is_string($valeur) && $valeur !== '' && preg_match('/^[=+\-@\t\r]/', $valeur) === 1) {
+            return "'" . $valeur;
+        }
+
+        return $valeur;
+    }
+
+    /**
+     * Compte les créations par jour (clé Y-m-d) depuis $debut.
+     * Ne lit que la colonne de date, en flux : aucune entité n'est hydratée.
+     *
+     * @return array<string, int>
+     */
+    private function compterCreationsParJour(ServiceEntityRepository $repository, \DateTimeImmutable $debut): array
+    {
+        $requete = $repository->createQueryBuilder('e')
+            ->select('e.creeLe')
+            ->where('e.creeLe >= :debut')
+            ->setParameter('debut', $debut)
+            ->getQuery();
+
+        $parJour = [];
+        foreach ($requete->toIterable([], AbstractQuery::HYDRATE_ARRAY) as $ligne) {
+            $creeLe = $ligne['creeLe'];
+            $date = $creeLe instanceof \DateTimeInterface ? $creeLe : new \DateTimeImmutable((string) $creeLe);
+            $cle = $date->format('Y-m-d');
+            $parJour[$cle] = ($parJour[$cle] ?? 0) + 1;
+        }
+
+        return $parJour;
+    }
 
     // ─────────────────────────────────────────────────────────────
     // 1. DASHBOARD STATS & INDICATEURS GLOBAUX
@@ -81,45 +129,51 @@ final class AdminController extends AbstractController
 
         // Analyses
         $totalAnalyses = $this->analyseRepository->count([]);
-        $analysesTerminees = $this->analyseRepository->findBy(['statut' => Analyse::STATUT_TERMINE]);
+        // Agrégats calculés par la base : aucune entité Analyse n'est chargée en mémoire
+        $agregats = $this->analyseRepository->createQueryBuilder('a')
+            ->select(
+                'COUNT(a.id) AS terminees',
+                'AVG(a.note) AS moyenneNotes',
+                'SUM(CASE WHEN a.note >= 80 THEN 1 ELSE 0 END) AS excellent',
+                'SUM(CASE WHEN a.note >= 60 AND a.note < 80 THEN 1 ELSE 0 END) AS bon',
+                'SUM(CASE WHEN a.note < 60 THEN 1 ELSE 0 END) AS aAmeliorer',
+            )
+            ->where('a.statut = :terminee')
+            ->setParameter('terminee', Analyse::STATUT_TERMINE)
+            ->getQuery()
+            ->getSingleResult(AbstractQuery::HYDRATE_ARRAY);
+
+        $nbTerminees = (int) $agregats['terminees'];
+        $scoreMoyen = $agregats['moyenneNotes'] !== null ? (int) round((float) $agregats['moyenneNotes']) : 0;
+        $repartition = [
+            'excellent' => (int) $agregats['excellent'],
+            'bon' => (int) $agregats['bon'],
+            'aAmeliorer' => (int) $agregats['aAmeliorer'],
+        ];
+
         $analysesErreur = $this->analyseRepository->count(['statut' => Analyse::STATUT_ERREUR]);
         $analysesEnCours = $this->analyseRepository->count(['statut' => Analyse::STATUT_EN_COURS]);
         $analysesEnAttente = $this->analyseRepository->count(['statut' => Analyse::STATUT_EN_ATTENTE]);
 
-        $scoreMoyen = 0;
-        $repartition = ['excellent' => 0, 'bon' => 0, 'aAmeliorer' => 0];
+        // Compétences : seule la colonne JSON est lue, ligne par ligne (flux), seul le compteur reste en mémoire
         $competencesFreq = [];
+        $requeteCompetences = $this->analyseRepository->createQueryBuilder('a')
+            ->select('a.competences')
+            ->where('a.statut = :terminee')
+            ->setParameter('terminee', Analyse::STATUT_TERMINE)
+            ->getQuery();
 
-        $nbNotes = 0;
-        $sommeNotes = 0;
-
-        foreach ($analysesTerminees as $a) {
-            $note = $a->getNote();
-            if ($note !== null) {
-                $nbNotes++;
-                $sommeNotes += $note;
-                if ($note >= 80) {
-                    $repartition['excellent']++;
-                } elseif ($note >= 60) {
-                    $repartition['bon']++;
-                } else {
-                    $repartition['aAmeliorer']++;
+        foreach ($requeteCompetences->toIterable([], AbstractQuery::HYDRATE_ARRAY) as $ligne) {
+            if (!is_array($ligne['competences'] ?? null)) {
+                continue;
+            }
+            foreach ($ligne['competences'] as $comp) {
+                $cTrim = trim((string) $comp);
+                if ($cTrim !== '') {
+                    $cLower = mb_convert_case($cTrim, MB_CASE_TITLE, 'UTF-8');
+                    $competencesFreq[$cLower] = ($competencesFreq[$cLower] ?? 0) + 1;
                 }
             }
-
-            if (is_array($a->getCompetences())) {
-                foreach ($a->getCompetences() as $comp) {
-                    $cTrim = trim($comp);
-                    if ($cTrim !== '') {
-                        $cLower = mb_convert_case($cTrim, MB_CASE_TITLE, 'UTF-8');
-                        $competencesFreq[$cLower] = ($competencesFreq[$cLower] ?? 0) + 1;
-                    }
-                }
-            }
-        }
-
-        if ($nbNotes > 0) {
-            $scoreMoyen = (int) round($sommeNotes / $nbNotes);
         }
 
         // Top 10 compétences
@@ -132,33 +186,20 @@ final class AdminController extends AbstractController
             if ($i >= 10) break;
         }
 
-        // Activité sur les 7 derniers jours (pour mini-graphique)
+        // Activité sur les 7 derniers jours (mini-graphique) : 2 requêtes au total, regroupées par jour en PHP
+        $debutFenetre = (new \DateTimeImmutable('-6 days'))->setTime(0, 0, 0);
+        $cvsParJour = $this->compterCreationsParJour($this->cvRepository, $debutFenetre);
+        $analysesParJour = $this->compterCreationsParJour($this->analyseRepository, $debutFenetre);
+
         $activiteJours = [];
         for ($j = 6; $j >= 0; $j--) {
-            $debutJour = (new \DateTimeImmutable("-{$j} days"))->setTime(0, 0, 0);
-            $finJour = $debutJour->setTime(23, 59, 59);
-            $label = $debutJour->format('d/m');
-
-            $nbCvsJour = (int) $this->cvRepository->createQueryBuilder('c')
-                ->select('COUNT(c.id)')
-                ->where('c.creeLe >= :deb AND c.creeLe <= :fin')
-                ->setParameter('deb', $debutJour)
-                ->setParameter('fin', $finJour)
-                ->getQuery()
-                ->getSingleScalarResult();
-
-            $nbAnalysesJour = (int) $this->analyseRepository->createQueryBuilder('a')
-                ->select('COUNT(a.id)')
-                ->where('a.creeLe >= :deb AND a.creeLe <= :fin')
-                ->setParameter('deb', $debutJour)
-                ->setParameter('fin', $finJour)
-                ->getQuery()
-                ->getSingleScalarResult();
+            $jour = (new \DateTimeImmutable("-{$j} days"))->setTime(0, 0, 0);
+            $cle = $jour->format('Y-m-d');
 
             $activiteJours[] = [
-                'date' => $label,
-                'cvs' => $nbCvsJour,
-                'analyses' => $nbAnalysesJour,
+                'date' => $jour->format('d/m'),
+                'cvs' => $cvsParJour[$cle] ?? 0,
+                'analyses' => $analysesParJour[$cle] ?? 0,
             ];
         }
 
@@ -177,7 +218,7 @@ final class AdminController extends AbstractController
             ],
             'analyses' => [
                 'total' => $totalAnalyses,
-                'terminees' => count($analysesTerminees),
+                'terminees' => $nbTerminees,
                 'enCours' => $analysesEnCours + $analysesEnAttente,
                 'erreurs' => $analysesErreur,
                 'scoreMoyen' => $scoreMoyen,
@@ -263,7 +304,7 @@ final class AdminController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $hasher,
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->corpsJson($request);
         $email = mb_strtolower(trim((string) ($data['email'] ?? '')));
         $motDePasse = (string) ($data['motDePasse'] ?? '');
         $role = trim((string) ($data['role'] ?? 'ROLE_USER'));
@@ -356,7 +397,7 @@ final class AdminController extends AbstractController
             return $this->json(['erreur' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->corpsJson($request);
 
         // Modification email
         if (isset($data['email'])) {
@@ -557,13 +598,13 @@ final class AdminController extends AbstractController
             return $this->json(['erreur' => 'CV introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
-        // Sécurisation anti-path traversal
+        // Sécurisation anti-path traversal (le séparateur évite le faux positif "cv" / "cv-evil")
         $nomFichierSecurise = basename($cv->getNomFichier());
         $chemin = $this->dossierCv . '/' . $nomFichierSecurise;
         $realDossier = realpath($this->dossierCv);
         $realChemin = realpath($chemin);
 
-        if (!$realChemin || !$realDossier || !str_starts_with($realChemin, $realDossier) || !is_file($realChemin)) {
+        if (!$realChemin || !$realDossier || !str_starts_with($realChemin, $realDossier . DIRECTORY_SEPARATOR) || !is_file($realChemin)) {
             return $this->json(['erreur' => 'Le fichier physique est introuvable sur le disque.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -706,14 +747,17 @@ final class AdminController extends AbstractController
 
             foreach ($users as $u) {
                 $nbCvs = $this->cvRepository->count(['proprietaire' => $u]);
-                fputcsv($handle, [
-                    $u->getId(),
-                    $u->getEmail(),
-                    $u->getRole(),
-                    $u->isActif() ? 'Actif' : 'Suspendu',
-                    $u->getCreeLe()?->format('d/m/Y H:i') ?? 'N/A',
-                    $nbCvs,
-                ], ';');
+                fputcsv($handle, array_map(
+                    fn($cellule) => $this->csvSecurise($cellule),
+                    [
+                        $u->getId(),
+                        $u->getEmail(),
+                        $u->getRole(),
+                        $u->isActif() ? 'Actif' : 'Suspendu',
+                        $u->getCreeLe()?->format('d/m/Y H:i') ?? 'N/A',
+                        $nbCvs,
+                    ]
+                ), ';');
             }
 
             fclose($handle);
@@ -738,15 +782,18 @@ final class AdminController extends AbstractController
 
             foreach ($cvs as $cv) {
                 $derniereAnalyse = $cv->getAnalyses()->last() ?: null;
-                fputcsv($handle, [
-                    $cv->getId(),
-                    $cv->getNomOriginal(),
-                    round($cv->getTaille() / 1024, 1),
-                    $cv->getProprietaire() ? $cv->getProprietaire()->getEmail() : 'Visiteur Anonyme',
-                    $cv->getCreeLe()->format('d/m/Y H:i'),
-                    $derniereAnalyse?->getNote() !== null ? $derniereAnalyse->getNote() . '/100' : 'N/A',
-                    $derniereAnalyse?->getStatut() ?? 'NON_ANALYSE',
-                ], ';');
+                fputcsv($handle, array_map(
+                    fn($cellule) => $this->csvSecurise($cellule),
+                    [
+                        $cv->getId(),
+                        $cv->getNomOriginal(),
+                        round($cv->getTaille() / 1024, 1),
+                        $cv->getProprietaire() ? $cv->getProprietaire()->getEmail() : 'Visiteur Anonyme',
+                        $cv->getCreeLe()->format('d/m/Y H:i'),
+                        $derniereAnalyse?->getNote() !== null ? $derniereAnalyse->getNote() . '/100' : 'N/A',
+                        $derniereAnalyse?->getStatut() ?? 'NON_ANALYSE',
+                    ]
+                ), ';');
             }
 
             fclose($handle);

@@ -28,15 +28,15 @@ export default function TurnstileWidget({ onVerify }) {
               if (onVerifyRef.current) onVerifyRef.current(token);
             },
             'error-callback': () => {
-              // Fallback dev token en cas d'erreur de clé locale
-              if (onVerifyRef.current) onVerifyRef.current('test-token');
+              // Pas de jeton de contournement : le backend rejettera l'envoi sans jeton valide
+              if (onVerifyRef.current) onVerifyRef.current('');
             },
             'expired-callback': () => {
               if (onVerifyRef.current) onVerifyRef.current('');
             },
           });
         } catch {
-          if (onVerifyRef.current) onVerifyRef.current('test-token');
+          if (onVerifyRef.current) onVerifyRef.current('');
         }
       }
     }
@@ -53,8 +53,8 @@ export default function TurnstileWidget({ onVerify }) {
           initTurnstile();
         } else if (attempts >= 10) {
           clearInterval(interval);
-          // Si le script est bloqué (ex: adblocker ou offline dev), valider en dev
-          if (onVerifyRef.current) onVerifyRef.current('test-token');
+          // Script Cloudflare bloqué (adblocker, hors ligne) : aucun jeton, l'envoi sera refusé côté serveur
+          if (onVerifyRef.current) onVerifyRef.current('');
         }
       }, 300);
     }

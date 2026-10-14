@@ -5,13 +5,11 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import {
-  UserIcon,
   SearchIcon,
   PlusIcon,
   DownloadIcon,
   CheckCircleIcon,
   AlertCircleIcon,
-  FileTextIcon,
   EyeIcon,
   EyeOffIcon,
 } from '../../components/ui/Icons';
@@ -168,7 +166,7 @@ export default function AdminUsersPage() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setErreur('Impossible d\'exporter les utilisateurs.');
     }
   }

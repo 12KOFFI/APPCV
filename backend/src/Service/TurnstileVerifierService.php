@@ -17,9 +17,15 @@ final class TurnstileVerifierService
 
     public function verifier(?string $token, ?string $clientIp = null): bool
     {
-        // En environnement de test ou si aucune clé secrète n'est configurée, valider pour faciliter dev & CI
-        if ($this->environment === 'test' || empty($this->secretKey)) {
+        // Environnement de test (CI) : validation automatique
+        if ($this->environment === 'test') {
             return true;
+        }
+
+        // Clé secrète absente : on laisse passer uniquement en développement.
+        // En production, on refuse (fail closed) pour ne jamais désactiver l'anti-bot silencieusement.
+        if (empty($this->secretKey)) {
+            return $this->environment !== 'prod';
         }
 
         // Jeton de test officiel Cloudflare : uniquement hors production (dev / test)

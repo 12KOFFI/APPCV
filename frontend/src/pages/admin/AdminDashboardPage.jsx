@@ -13,7 +13,6 @@ import {
   ArrowRightIcon,
   AlertCircleIcon,
   CheckCircleIcon,
-  DownloadIcon,
 } from '../../components/ui/Icons';
 
 export default function AdminDashboardPage() {
@@ -58,40 +57,6 @@ export default function AdminDashboardPage() {
       setErreur(err.response?.data?.erreur || 'Erreur lors de la purge.');
     } finally {
       setPurgeEnCours(false);
-    }
-  }
-
-  async function handleExportUsers() {
-    try {
-      const res = await client.get('/api/admin/export/users', { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `utilisateurs-appcv-${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setErreur('Impossible d\'exporter les utilisateurs.');
-    }
-  }
-
-  async function handleExportCvs() {
-    try {
-      const res = await client.get('/api/admin/export/cvs', { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `rapport-cvs-appcv-${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      setErreur('Impossible d\'exporter les CVs.');
     }
   }
 

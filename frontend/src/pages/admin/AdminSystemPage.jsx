@@ -8,7 +8,6 @@ import {
   CheckCircleIcon,
   AlertCircleIcon,
   DownloadIcon,
-  ClockIcon,
   FileTextIcon,
   UserIcon,
 } from '../../components/ui/Icons';
@@ -16,13 +15,12 @@ import {
 export default function AdminSystemPage() {
   const [stats, setStats] = useState(null);
   const [sante, setSante] = useState(null);
-  const [chargement, setChargement] = useState(true);
+
   const [erreur, setErreur] = useState('');
   const [message, setMessage] = useState('');
   const [actionEnCours, setActionEnCours] = useState(false);
 
   async function chargerDonnees() {
-    setChargement(true);
     setErreur('');
     try {
       const [resStats, resSante] = await Promise.all([
@@ -33,8 +31,6 @@ export default function AdminSystemPage() {
       setSante(resSante.data);
     } catch (err) {
       setErreur(err.response?.data?.erreur || 'Impossible de charger les informations système.');
-    } finally {
-      setChargement(false);
     }
   }
 
@@ -60,14 +56,32 @@ export default function AdminSystemPage() {
     }
   }
 
+  // Téléchargement authentifié : le JWT est envoyé dans l'en-tête Authorization (jamais dans l'URL,
+  // où il finirait dans l'historique et les logs serveur).
+  async function telechargerExport(chemin, prefixeFichier) {
+    setErreur('');
+    try {
+      const res = await client.get(chemin, { responseType: 'blob' });
+      const date = new Date().toISOString().slice(0, 10);
+      const url = URL.createObjectURL(res.data);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = `${prefixeFichier}_${date}.csv`;
+      document.body.appendChild(lien);
+      lien.click();
+      lien.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErreur("Impossible de télécharger l'export. Vérifiez votre session.");
+    }
+  }
+
   function handleExportUsers() {
-    const token = localStorage.getItem('token');
-    window.open(`${client.defaults.baseURL || ''}/api/admin/export/users?token=${token}`, '_blank');
+    telechargerExport('/api/admin/export/users', 'appcv_utilisateurs');
   }
 
   function handleExportCvs() {
-    const token = localStorage.getItem('token');
-    window.open(`${client.defaults.baseURL || ''}/api/admin/export/cvs?token=${token}`, '_blank');
+    telechargerExport('/api/admin/export/cvs', 'appcv_analyses');
   }
 
   return (

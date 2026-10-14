@@ -25,7 +25,8 @@ final class PdfGeneratorService
 
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
+        // Pas de ressources distantes : le template n'en utilise aucune. Évite tout SSRF via du contenu injecté.
+        $options->set('isRemoteEnabled', false);
         $options->set('defaultFont', 'Helvetica');
 
         $dompdf = new Dompdf($options);

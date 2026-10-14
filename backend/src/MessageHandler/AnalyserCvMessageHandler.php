@@ -8,6 +8,7 @@ use App\Message\AnalyserCvMessage;
 use App\Repository\AnalyseRepository;
 use App\Service\AnalyseurCvIa;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -17,6 +18,7 @@ final class AnalyserCvMessageHandler
         private readonly AnalyseRepository $analyseRepository,
         private readonly AnalyseurCvIa $analyseur,
         private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
     ) {}
 
     public function __invoke(AnalyserCvMessage $message): void
@@ -41,9 +43,17 @@ final class AnalyserCvMessageHandler
             $analyse->setCompetences($resultat->competences);
             $analyse->setRecommandations($resultat->recommandations);
             $analyse->setStatut(Analyse::STATUT_TERMINE);
-        } catch (\Throwable $e) {
+        } catch (AnalyseIaException $e) {
+            // Message volontairement rédigé pour l'utilisateur (aucun détail technique)
             $analyse->setStatut(Analyse::STATUT_ERREUR);
             $analyse->setErreur($e->getMessage());
+        } catch (\Throwable $e) {
+            $this->logger->error('Erreur inattendue pendant l\'analyse du CV.', [
+                'analyseId' => $analyse->getId(),
+                'exception' => $e,
+            ]);
+            $analyse->setStatut(Analyse::STATUT_ERREUR);
+            $analyse->setErreur('Une erreur inattendue est survenue pendant l\'analyse. Veuillez réessayer.');
         }
 
         $this->em->flush();

@@ -27,11 +27,22 @@ final class AuthController extends AbstractController
 
     #[Route('/inscription', name: 'api_inscription', methods: ['POST'])]
     public function inscription(
+        Request $request,
         #[MapRequestPayload] InscriptionDto $dto,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
         EntityManagerInterface $em,
+        RateLimiterFactory $apiInscriptionLimiter,
     ): JsonResponse {
+        // Anti-abus : limite le nombre d'inscriptions par adresse IP (config/packages/rate_limiter.yaml)
+        $limiteur = $apiInscriptionLimiter->create($request->getClientIp() ?? 'inconnu');
+        if (!$limiteur->consume(1)->isAccepted()) {
+            return $this->json(
+                ['erreur' => 'Trop de tentatives d\'inscription. Veuillez réessayer plus tard.'],
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
         $email = mb_strtolower(trim($dto->email));
 
         if ($userRepository->findOneBy(['email' => $email]) !== null) {

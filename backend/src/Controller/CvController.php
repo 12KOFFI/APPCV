@@ -172,10 +172,19 @@ final class CvController extends AbstractController
         CvUploadService $cvUploadService,
         EntityManagerInterface $em,
         MessageBusInterface $bus,
+        RateLimiterFactory $cvAnonymousUploadLimiter,
     ): JsonResponse {
-        // 1. Si utilisateur anonyme : Validation Turnstile anti-bot
+        // 1. Si utilisateur anonyme : limitation de débit puis validation Turnstile anti-bot
         if ($user === null) {
             $clientIp = $request->getClientIp() ?? '127.0.0.1';
+
+            // Anti-abus : chaque upload anonyme déclenche un traitement disque/extraction
+            if (!$cvAnonymousUploadLimiter->create($clientIp)->consume(1)->isAccepted()) {
+                return $this->json([
+                    'erreur' => 'Trop de dépôts de CV depuis cette adresse. Veuillez réessayer plus tard.',
+                ], Response::HTTP_TOO_MANY_REQUESTS);
+            }
+
             $turnstileToken = $request->headers->get('cf-turnstile-response')
                 ?? $request->request->get('cf-turnstile-response')
                 ?? $request->request->get('turnstileToken');
@@ -262,9 +271,10 @@ final class CvController extends AbstractController
         EntityManagerInterface $em,
     ): JsonResponse {
         $body = json_decode($request->getContent(), true);
+        $jetonDansCorps = is_array($body) ? ($body['claimToken'] ?? null) : null;
         $rawToken = $request->cookies->get('cv_claim_token')
             ?? $request->headers->get('X-Claim-Token')
-            ?? ($body['claimToken'] ?? null)
+            ?? $jetonDansCorps
             ?? $request->request->get('claimToken');
 
         if (empty($rawToken) || !is_string($rawToken)) {
