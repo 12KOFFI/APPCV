@@ -7,16 +7,13 @@ import TurnstileWidget from '../components/upload/TurnstileWidget';
 import TeaserResult from '../components/upload/TeaserResult';
 import AppLayout from '../components/layout/AppLayout';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 import {
   CheckCircleIcon,
   SparklesIcon,
   AlertCircleIcon,
   ArrowRightIcon,
-  FileTextIcon,
   TargetIcon,
-  ShieldCheckIcon,
 } from '../components/ui/Icons';
 
 export default function UploadPage() {
@@ -192,7 +189,7 @@ export default function UploadPage() {
               {/* 3. Sécurité Turnstile (uniquement pour les visiteurs non authentifiés) */}
               {!user && (
                 <div>
-                  <TurnstileWidget onVerify={setTurnstileToken} disabled={chargement} />
+                  <TurnstileWidget onVerify={setTurnstileToken} />
                 </div>
               )}
 

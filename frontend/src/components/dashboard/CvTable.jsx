@@ -6,7 +6,6 @@ import {
   FileTextIcon,
   SparklesIcon,
   SearchIcon,
-  FilterIcon,
   ClockIcon,
   CheckCircleIcon,
   PlusIcon,

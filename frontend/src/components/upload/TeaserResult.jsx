@@ -5,7 +5,6 @@ import { Card } from '../ui/Card';
 import {
   SparklesIcon,
   CheckCircleIcon,
-  AlertCircleIcon,
   LockIcon,
   ArrowRightIcon,
   ClockIcon,

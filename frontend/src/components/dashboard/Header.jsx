@@ -23,26 +23,21 @@ export default function Header({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return (
-      localStorage.getItem('theme') === 'dark' ||
-      document.documentElement.classList.contains('dark')
-    );
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return savedTheme === 'dark' || (!savedTheme && prefersDark);
   });
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
 
-  // Synchronisation initiale du thème au montage
+  // Synchronisation du thème DOM avec l'état
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      setIsDarkMode(true);
     } else {
       document.documentElement.classList.remove('dark');
-      setIsDarkMode(false);
     }
-  }, []);
+  }, [isDarkMode]);
 
   // Fermer le dropdown au clic en dehors
   useEffect(() => {

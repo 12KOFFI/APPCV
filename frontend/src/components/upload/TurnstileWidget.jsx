@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { ShieldCheckIcon } from '../ui/Icons';
 
-export default function TurnstileWidget({ onVerify, disabled }) {
+export default function TurnstileWidget({ onVerify }) {
   const containerRef = useRef(null);
   const widgetIdRef = useRef(null);
-  const [ready, setReady] = useState(false);
+  const onVerifyRef = useRef(onVerify);
+
+  // Synchronisation continue du callback sans recréer le widget
+  useEffect(() => {
+    onVerifyRef.current = onVerify;
+  }, [onVerify]);
 
   // Clé publique Cloudflare (clé officielle de test Cloudflare '1x00000000000000000000AA' par défaut)
   const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
@@ -15,23 +20,23 @@ export default function TurnstileWidget({ onVerify, disabled }) {
     function initTurnstile() {
       if (window.turnstile && containerRef.current && widgetIdRef.current === null) {
         try {
+          containerRef.current.innerHTML = '';
           widgetIdRef.current = window.turnstile.render(containerRef.current, {
             sitekey: siteKey,
             theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
             callback: (token) => {
-              if (onVerify) onVerify(token);
+              if (onVerifyRef.current) onVerifyRef.current(token);
             },
             'error-callback': () => {
               // Fallback dev token en cas d'erreur de clé locale
-              if (onVerify) onVerify('test-token');
+              if (onVerifyRef.current) onVerifyRef.current('test-token');
             },
             'expired-callback': () => {
-              if (onVerify) onVerify('');
+              if (onVerifyRef.current) onVerifyRef.current('');
             },
           });
-          setReady(true);
         } catch {
-          if (onVerify) onVerify('test-token');
+          if (onVerifyRef.current) onVerifyRef.current('test-token');
         }
       }
     }
@@ -49,7 +54,7 @@ export default function TurnstileWidget({ onVerify, disabled }) {
         } else if (attempts >= 10) {
           clearInterval(interval);
           // Si le script est bloqué (ex: adblocker ou offline dev), valider en dev
-          if (onVerify) onVerify('test-token');
+          if (onVerifyRef.current) onVerifyRef.current('test-token');
         }
       }, 300);
     }
