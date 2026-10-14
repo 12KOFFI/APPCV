@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import client from '../api/client';
 import { useAuth } from '../contexts/useAuth';
 import StatCards from '../components/dashboard/StatCards';
 import AreaChartCard from '../components/dashboard/AreaChartCard';
 import DonutChartCard from '../components/dashboard/DonutChartCard';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 import {
   AlertCircleIcon,
   FileTextIcon,
@@ -13,10 +15,10 @@ import {
   ArrowRightIcon,
   SparklesIcon,
 } from '../components/ui/Icons';
-import Badge from '../components/ui/Badge';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const location = useLocation();
   const [cvs, setCvs] = useState([]);
   const [stats, setStats] = useState(null);
   const [chargement, setChargement] = useState(true);
@@ -90,6 +92,45 @@ export default function DashboardPage() {
           <span>{erreur}</span>
         </div>
       )}
+
+      {/* ── Document récemment rattaché ou en attente d'analyse IA ── */}
+      {(() => {
+        const cvEnAttente = cvs.find(
+          (c) => c.id === location.state?.cvId || c.dernierStatut === 'NON_ANALYSE' || c.derniereNote === null
+        );
+        if (!cvEnAttente) return null;
+
+        return (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50/80 dark:from-slate-800/80 dark:to-indigo-950/40 border border-blue-200/80 dark:border-indigo-800/60 shadow-xs text-left fade-in">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <SparklesIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white">
+                    Document prêt pour l'analyse : {cvEnAttente.nomOriginal}
+                  </h3>
+                  <Badge variant="blue" size="sm">Disponible</Badge>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                  {location.state?.cvRattache
+                    ? "Votre CV a été rattaché à votre compte avec succès. Lancez dès maintenant l'analyse approfondie par IA."
+                    : "Ce document est enregistré dans votre compte. Lancez votre audit par intelligence artificielle quand vous le souhaitez."}
+                </p>
+              </div>
+            </div>
+
+            <Link to={`/cv/${cvEnAttente.id}/analyse`} className="self-start sm:self-auto shrink-0">
+              <Button variant="primary" size="md" className="font-bold shadow-xs">
+                <SparklesIcon className="w-4 h-4 mr-1.5" />
+                <span>Lancer l'analyse par IA</span>
+                <ArrowRightIcon className="w-4 h-4 ml-1.5" />
+              </Button>
+            </Link>
+          </div>
+        );
+      })()}
 
       {/* ══════════════════════════════════════════════════════════════════
           1. 4 CARTES MÉTRIQUES KPI (DONNÉES RÉELLES DE L'UTILISATEUR OU ADMIN)

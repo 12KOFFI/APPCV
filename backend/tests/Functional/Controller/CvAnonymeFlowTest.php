@@ -69,14 +69,11 @@ class CvAnonymeFlowTest extends WebTestCase
             $this->assertResponseStatusCodeSame(201);
             $data = json_decode($client->getResponse()->getContent(), true);
 
-            // Vérification que le teaser est retourné et pas de données confidentielles
+            // Vérification de la persistance temporaire sans simulation ni teaser
             $this->assertFalse($data['rattacheAuCompte']);
+            $this->assertTrue($data['enAttenteAuthentification']);
             $this->assertSame('cv_visiteur.pdf', $data['nomOriginal']);
-            $this->assertArrayHasKey('teaser', $data);
-            $this->assertArrayHasKey('score', $data['teaser']);
-            $this->assertArrayHasKey('constats', $data['teaser']);
-            $this->assertArrayHasKey('nombreProblemes', $data['teaser']);
-            $this->assertSame('Fichier conservé 48h max sans compte', $data['messageRgpd']);
+            $this->assertArrayNotHasKey('teaser', $data);
             $this->assertArrayNotHasKey('texteExtrait', $data);
             $this->assertArrayNotHasKey('jetonAcces', $data); // Secret strictly in HttpOnly cookie!
 
@@ -122,7 +119,6 @@ class CvAnonymeFlowTest extends WebTestCase
             $rattacherData = json_decode($client->getResponse()->getContent(), true);
             $this->assertTrue($rattacherData['succes']);
             $this->assertSame($cvId, $rattacherData['cvId']);
-            $this->assertArrayHasKey('analyseId', $rattacherData);
 
             // 4. Tentative de second rattachement (doit échouer car jeton invalidé)
             $client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(

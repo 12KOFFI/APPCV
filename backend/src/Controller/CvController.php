@@ -10,7 +10,6 @@ use App\Exception\AnalyseIaException;
 use App\Exception\ExtractionImpossibleException;
 use App\Service\CvUploadService;
 use App\Service\AnalyseurCvIa;
-use App\Service\TeaserGeneratorService;
 use App\Service\TurnstileVerifierService;
 use App\Message\AnalyserCvMessage;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
@@ -35,7 +34,6 @@ final class CvController extends AbstractController
     public function __construct(
         #[Autowire(service: 'limiter.cv_anonymous_upload')]
         private readonly RateLimiterFactory $anonymousUploadLimiter,
-        private readonly TeaserGeneratorService $teaserGenerator,
         private readonly TurnstileVerifierService $turnstileVerifier,
     ) {}
     #[Route('/api/cv', name: 'api_cv_liste', methods: ['GET'])]
@@ -221,32 +219,18 @@ final class CvController extends AbstractController
             return $this->json(['erreur' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // 5. Cas utilisateur déjà connecté : lance l'analyse complète directement
+        // 5. Cas utilisateur déjà connecté : enregistre le CV directement rattaché
         if ($user !== null) {
-            $analyse = new Analyse($entite, $entite->getTexteOffre());
-            $analyse->setStatut(Analyse::STATUT_EN_ATTENTE);
-            $em->persist($analyse);
-            $em->flush();
-
-            $bus->dispatch(new AnalyserCvMessage($analyse->getId()));
-
             return $this->json([
                 'id' => $entite->getId(),
                 'nomOriginal' => $entite->getNomOriginal(),
                 'rattacheAuCompte' => true,
                 'nombreCaracteres' => mb_strlen($entite->getTexteExtrait() ?? ''),
-                'analyseId' => $analyse->getId(),
-                'message' => 'CV enregistré et analyse lancée.',
+                'message' => 'CV enregistré avec succès.',
             ], Response::HTTP_CREATED);
         }
 
-        // 6. Cas visiteur anonyme : génération déterministe locale du TEASER (0 COÛT IA !)
-        $teaser = $this->teaserGenerator->genererTeaser($entite->getTexteExtrait() ?? '', $entite->getTexteOffre());
-        $entite->setScoreTeaser($teaser['score']);
-        $entite->setConstatsTeaser($teaser['constats']);
-        $entite->setNbProblemesTeaser($teaser['nombreProblemes']);
-
-        // Calcul du jeton secret aléatoire (32 octets) + hash SHA-256 en BDD + expiration à NOW + 48h
+        // 6. Cas visiteur anonyme : persistance temporaire sécurisée (0 simulation, 0 coût IA)
         $rawClaimToken = bin2hex(random_bytes(32));
         $hashToken = hash('sha256', $rawClaimToken);
         $expiration = (new \DateTimeImmutable())->modify('+48 hours');
@@ -268,17 +252,13 @@ final class CvController extends AbstractController
             Cookie::SAMESITE_LAX
         );
 
-        // Réponse JSON : UNIQUEMENT les métadonnées du teaser (jamais le rapport complet)
         $reponse = $this->json([
             'id' => $entite->getId(),
             'nomOriginal' => $entite->getNomOriginal(),
             'taille' => $entite->getTaille(),
             'rattacheAuCompte' => false,
-            'teaser' => [
-                'score' => $teaser['score'],
-                'constats' => $teaser['constats'],
-                'nombreProblemes' => $teaser['nombreProblemes'],
-            ],
+            'enAttenteAuthentification' => true,
+            'message' => 'CV enregistré temporairement. Authentifiez-vous pour lancer l\'analyse par IA.',
             'messageRgpd' => 'Fichier conservé 48h max sans compte',
         ], Response::HTTP_CREATED);
 
@@ -293,7 +273,6 @@ final class CvController extends AbstractController
         #[CurrentUser] User $user,
         CvRepository $cvRepository,
         EntityManagerInterface $em,
-        MessageBusInterface $bus,
     ): JsonResponse {
         $rawToken = $request->cookies->get('cv_claim_token');
 
@@ -356,19 +335,11 @@ final class CvController extends AbstractController
         // Rafraîchir l'entité CV
         $em->refresh($cv);
 
-        // Création de l'entité Analyse complète + Dispatch Messenger (Modèle IA puissant)
-        $analyse = new Analyse($cv, $cv->getTexteOffre());
-        $analyse->setStatut(Analyse::STATUT_EN_ATTENTE);
-        $em->persist($analyse);
-        $em->flush();
-
-        $bus->dispatch(new AnalyserCvMessage($analyse->getId()));
-
         $response = $this->json([
             'succes' => true,
-            'message' => 'CV rattaché avec succès. L\'analyse complète a été lancée.',
+            'message' => 'CV rattaché avec succès à votre compte.',
             'cvId' => $cv->getId(),
-            'analyseId' => $analyse->getId(),
+            'nomOriginal' => $cv->getNomOriginal(),
         ], Response::HTTP_OK);
 
         // Invalidation immédiate en session : suppression du cookie HttpOnly

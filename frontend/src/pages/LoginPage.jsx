@@ -32,8 +32,14 @@ export default function LoginPage() {
       // Rattachement automatique du CV téléversé avant connexion
       try {
         const claimRes = await client.post('/api/cv/rattacher');
-        if (claimRes.data?.analyseId) {
-          navigate(`/cv/${claimRes.data.analyseId}/analyse`);
+        if (claimRes.data?.succes) {
+          navigate('/dashboard', {
+            state: {
+              cvRattache: true,
+              cvId: claimRes.data.cvId,
+              nomCv: claimRes.data.nomOriginal,
+            },
+          });
           return;
         }
       } catch {

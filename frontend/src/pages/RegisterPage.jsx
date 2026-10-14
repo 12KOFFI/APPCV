@@ -54,8 +54,14 @@ export default function RegisterPage() {
         // Tentative de rattachement automatique du CV téléversé anonymement
         try {
           const claimRes = await client.post('/api/cv/rattacher');
-          if (claimRes.data?.analyseId) {
-            navigate(`/cv/${claimRes.data.analyseId}/analyse`);
+          if (claimRes.data?.succes) {
+            navigate('/dashboard', {
+              state: {
+                cvRattache: true,
+                cvId: claimRes.data.cvId,
+                nomCv: claimRes.data.nomOriginal,
+              },
+            });
             return;
           }
         } catch {

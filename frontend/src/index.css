@@ -329,13 +329,13 @@ html.dark .fill-slate-400 {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   IMPRESSION & SÉCURITÉ DU TEASER
-   Masque systématiquement les sections verrouillées et éléments interactifs
+   IMPRESSION & SÉCURITÉ
+   Masque systématiquement les éléments interactifs à l'impression
    ═══════════════════════════════════════════════════════════════════════ */
 @media print {
-  .teaser-locked-print,
   .no-print {
     display: none !important;
   }
 }
+
 

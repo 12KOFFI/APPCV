@@ -42,16 +42,6 @@ class Cv
     #[ORM\Column(length: 64, nullable: true)]
     private ?string $hashFichier = null;
 
-    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
-    private ?int $scoreTeaser = null;
-
-    /** @var list<string>|null */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $constatsTeaser = null;
-
-    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
-    private ?int $nbProblemesTeaser = null;
-
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?User $proprietaire = null;
@@ -138,28 +128,5 @@ class Cv
         $this->hashFichier = $hashFichier;
         return $this;
     }
-
-    public function getScoreTeaser(): ?int { return $this->scoreTeaser; }
-
-    public function setScoreTeaser(?int $scoreTeaser): static
-    {
-        $this->scoreTeaser = $scoreTeaser;
-        return $this;
-    }
-
-    public function getConstatsTeaser(): ?array { return $this->constatsTeaser; }
-
-    public function setConstatsTeaser(?array $constatsTeaser): static
-    {
-        $this->constatsTeaser = $constatsTeaser;
-        return $this;
-    }
-
-    public function getNbProblemesTeaser(): ?int { return $this->nbProblemesTeaser; }
-
-    public function setNbProblemesTeaser(?int $nbProblemesTeaser): static
-    {
-        $this->nbProblemesTeaser = $nbProblemesTeaser;
-        return $this;
-    }
 }
+
