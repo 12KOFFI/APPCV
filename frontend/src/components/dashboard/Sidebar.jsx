@@ -26,7 +26,7 @@ export default function Sidebar({
       active: location.pathname === '/dashboard',
     },
     {
-      label: 'Déposer un CV',
+      label: 'Analyse de CV',
       to: '/upload',
       icon: UploadIcon,
       badge: 'Nouveau',

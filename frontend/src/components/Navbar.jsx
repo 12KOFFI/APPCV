@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
 import Button from './ui/Button';
@@ -8,6 +9,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // La Navbar publique s'affiche sur "/" et sur "/upload" pour les visiteurs anonymes
   if (location.pathname !== '/' && (location.pathname !== '/upload' || user)) {
@@ -15,16 +17,51 @@ export default function Navbar() {
   }
 
   function handleLogout() {
+    setMobileMenuOpen(false);
     logout();
     navigate('/login');
   }
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (location.pathname === '/') {
+      const heroEl = document.getElementById('hero');
+      if (heroEl) {
+        heroEl.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      window.history.pushState(null, '', '/#hero');
+    } else {
+      navigate('/#hero');
+    }
+  };
+
+  const handleNavClick = (e, targetId) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    if (location.pathname === '/') {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', `/#${targetId}`);
+      }
+    } else {
+      navigate(`/#${targetId}`);
+    }
+  };
 
   return (
     <header className="navbar-saas">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* ── Logo & Marque ── */}
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2.5 group">
+          <a
+            href="/#hero"
+            onClick={handleLogoClick}
+            className="flex items-center gap-2.5 group cursor-pointer"
+          >
             <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
               <FileTextIcon className="w-5 h-5 text-white" />
             </div>
@@ -34,7 +71,7 @@ export default function Navbar() {
                 IA
               </Badge>
             </div>
-          </Link>
+          </a>
 
           {/* ── Navigation Liens (Desktop) ── */}
           <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
@@ -74,20 +111,23 @@ export default function Navbar() {
             ) : (
               <>
                 <a
-                  href="#comment-ca-marche"
-                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                  href="/#comment-ca-marche"
+                  onClick={(e) => handleNavClick(e, 'comment-ca-marche')}
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200 cursor-pointer"
                 >
                   Comment ça marche
                 </a>
                 <a
-                  href="#fonctionnalites"
-                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                  href="/#fonctionnalites"
+                  onClick={(e) => handleNavClick(e, 'fonctionnalites')}
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200 cursor-pointer"
                 >
                   Fonctionnalités
                 </a>
                 <a
-                  href="#faq"
-                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200"
+                  href="/#faq"
+                  onClick={(e) => handleNavClick(e, 'faq')}
+                  className="relative py-1 transition-colors hover:text-slate-900 after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-slate-900 hover:after:w-full after:transition-all after:duration-200 cursor-pointer"
                 >
                   FAQ
                 </a>
@@ -148,8 +188,97 @@ export default function Navbar() {
               </Link>
             </div>
           )}
+
+          {/* Bouton Hamburger pour mobile */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            aria-label="Menu"
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Menu mobile déroulant */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-3 shadow-lg fade-in">
+          {user ? (
+            <div className="flex flex-col space-y-2 text-sm font-semibold text-slate-700">
+              <Link
+                to="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition"
+              >
+                Tableau de bord
+              </Link>
+              <Link
+                to="/upload"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition"
+              >
+                Téléverser un CV
+              </Link>
+              <Link
+                to="/profil"
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition"
+              >
+                Mon Profil ({user.email})
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col space-y-2 text-sm font-semibold text-slate-700">
+              <a
+                href="/#comment-ca-marche"
+                onClick={(e) => handleNavClick(e, 'comment-ca-marche')}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+              >
+                Comment ça marche
+              </a>
+              <a
+                href="/#fonctionnalites"
+                onClick={(e) => handleNavClick(e, 'fonctionnalites')}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+              >
+                Fonctionnalités
+              </a>
+              <a
+                href="/#faq"
+                onClick={(e) => handleNavClick(e, 'faq')}
+                className="py-2 px-3 rounded-lg hover:bg-slate-50 transition cursor-pointer"
+              >
+                FAQ
+              </a>
+              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2 rounded-lg text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2 rounded-lg text-xs font-bold text-white bg-slate-900 hover:bg-black"
+                >
+                  Commencer gratuitement
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }

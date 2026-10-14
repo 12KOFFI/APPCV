@@ -55,6 +55,11 @@
   color-scheme: light;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}
+
 /* ── Reset & Base Body ── */
 body {
   font-family: var(--font-sans);

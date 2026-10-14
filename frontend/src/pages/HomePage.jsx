@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Badge from '../components/ui/Badge';
 import {
   FileTextIcon,
@@ -24,6 +24,21 @@ import {
 
 export default function HomePage() {
   const [faqOuverte, setFaqOuverte] = useState(0);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const targetId = location.hash.replace('#', '');
+      const scrollToTarget = () => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+      const timer = setTimeout(scrollToTarget, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname, location.hash]);
 
   // Informations strictement réelles relatives à APPCV
   const faqs = [
@@ -59,7 +74,7 @@ export default function HomePage() {
       {/* ══════════════════════════════════════════════════════════════════
           1. HERO SECTION (AVEC FORMES VECTORIELLES DÉCORATIVES LOOPCV)
           ══════════════════════════════════════════════════════════════════ */}
-      <section className="relative pt-14 pb-20 sm:pt-20 sm:pb-28 overflow-hidden bg-[#F0F5F9]/60">
+      <section id="hero" className="relative pt-14 pb-20 sm:pt-20 sm:pb-28 overflow-hidden bg-[#F0F5F9]/60">
         {/* ── Formes décoratives SVG flottantes (fidèles à LoopCV) ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden -z-0">
           {/* Cercle rayé bleu en haut à gauche */}
@@ -189,7 +204,7 @@ export default function HomePage() {
                 </span>
               </div>
               <Link
-                to="/register"
+                to="/upload"
                 className="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-2xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 group"
               >
                 <span>Tester mon CV</span>
@@ -735,12 +750,20 @@ export default function HomePage() {
       <footer className="bg-white border-t border-slate-200 py-14 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 mb-12 text-left">
           <div>
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-white">
+            <a
+              href="/#hero"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
+                window.history.pushState(null, '', '/#hero');
+              }}
+              className="inline-flex items-center gap-2.5 mb-3 cursor-pointer group"
+            >
+              <div className="w-8 h-8 rounded-xl bg-slate-900 flex items-center justify-center text-white group-hover:bg-slate-800 transition">
                 <FileTextIcon className="w-4 h-4 text-white" />
               </div>
               <span className="font-extrabold text-slate-900 text-base tracking-tight">APPCV</span>
-            </div>
+            </a>
             <p className="text-slate-500 leading-relaxed pr-4">
               La plateforme d’audit et d’optimisation de CV par intelligence artificielle conçue pour maximiser vos chances d'entretien.
             </p>
@@ -751,15 +774,15 @@ export default function HomePage() {
             <ul className="space-y-2">
               <li><Link to="/upload" className="hover:text-slate-900 transition">Importer un CV</Link></li>
               <li><Link to="/dashboard" className="hover:text-slate-900 transition">Tableau de bord</Link></li>
-              <li><a href="#comment-ca-marche" className="hover:text-slate-900 transition">Comment ça marche</a></li>
-              <li><a href="#fonctionnalites" className="hover:text-slate-900 transition">Outils & Avantages</a></li>
+              <li><a href="/#comment-ca-marche" onClick={(e) => { e.preventDefault(); document.getElementById('comment-ca-marche')?.scrollIntoView({ behavior: 'smooth' }); window.history.pushState(null, '', '/#comment-ca-marche'); }} className="hover:text-slate-900 transition cursor-pointer">Comment ça marche</a></li>
+              <li><a href="/#fonctionnalites" onClick={(e) => { e.preventDefault(); document.getElementById('fonctionnalites')?.scrollIntoView({ behavior: 'smooth' }); window.history.pushState(null, '', '/#fonctionnalites'); }} className="hover:text-slate-900 transition cursor-pointer">Outils & Avantages</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-slate-900 mb-3 uppercase tracking-wider text-[11px]">Ressources</h4>
             <ul className="space-y-2">
-              <li><a href="#faq" className="hover:text-slate-900 transition">Questions fréquentes</a></li>
+              <li><a href="/#faq" onClick={(e) => { e.preventDefault(); document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }); window.history.pushState(null, '', '/#faq'); }} className="hover:text-slate-900 transition cursor-pointer">Questions fréquentes</a></li>
               <li><Link to="/register" className="hover:text-slate-900 transition">Créer un compte</Link></li>
               <li><Link to="/login" className="hover:text-slate-900 transition">Se connecter</Link></li>
             </ul>
@@ -777,7 +800,7 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 APPCV. Tous droits réservés.</p>
-          <p className="text-slate-400">Propulsé par Symfony 7.4 & React 19</p>
+         <p>Contactez-nous : <a href="mailto:isaacndri5@gmail.com">isaacndri5@gmail.com</a></p>
         </div>
       </footer>
     </div>
