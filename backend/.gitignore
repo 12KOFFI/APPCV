@@ -1,5 +1,4 @@
-
-###> symfony/framework-bundle ###
+﻿###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
 /.env.*.local
@@ -7,7 +6,11 @@
 /config/secrets/dev/dev.decrypt.private.php
 
 /public/bundles/
-/var/
+/var/cache/
+/var/log/
+/var/share/
+/var/uploads/cv/*
+!/var/uploads/cv/.gitkeep
 /vendor/
 ###< symfony/framework-bundle ###
 
