@@ -25,6 +25,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private array $roles = [];
 
+    #[ORM\Column(length: 30, options: ['default' => 'ROLE_USER'])]
+    private string $role = 'ROLE_USER';
+
     /**
      * @var string The hashed password
      */
@@ -64,6 +67,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
+        if ($this->role === 'ROLE_ADMIN' || $this->role === 'admin') {
+            $roles[] = 'ROLE_ADMIN';
+        }
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
@@ -76,6 +82,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
+        if (in_array('ROLE_ADMIN', $roles, true)) {
+            $this->role = 'ROLE_ADMIN';
+        }
+
+        return $this;
+    }
+
+    public function getRole(): string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = $role;
+        if ($role === 'ROLE_ADMIN' || $role === 'admin') {
+            $this->roles = array_unique([...$this->roles, 'ROLE_ADMIN', 'ROLE_USER']);
+        } else {
+            $this->roles = ['ROLE_USER'];
+        }
 
         return $this;
     }

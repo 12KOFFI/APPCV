@@ -1,45 +1,49 @@
 import { useState } from 'react';
 import { MoreVerticalIcon, SparklesIcon, TargetIcon, ShieldCheckIcon } from '../ui/Icons';
 
-export default function DonutChartCard({ cvsCount = 0 }) {
+export default function DonutChartCard({ stats }) {
   const [activeItem, setActiveItem] = useState(null);
 
-  // Pourcentages des segments du Donut
+  const analysesTerminees = stats?.analysesTerminees ?? 0;
+  const scoreMoyen = stats?.scoreMoyen;
+  const rep = stats?.repartition || { excellent: 0, bon: 0, aAmeliorer: 0 };
+
+  const pctExcellent = analysesTerminees > 0 ? Math.round((rep.excellent / analysesTerminees) * 100) : 0;
+  const pctBon = analysesTerminees > 0 ? Math.round((rep.bon / analysesTerminees) * 100) : 0;
+  const pctAmeliorer = analysesTerminees > 0 ? Math.max(0, 100 - pctExcellent - pctBon) : 0;
+
   const segments = [
     {
       id: 'excellent',
-      label: 'Scores Excellents (> 80%)',
+      label: 'Scores Excellents (≥ 80%)',
       subtext: 'Prêts aux recruteurs',
-      percent: 62,
-      color: '#2563EB', // Blue 600
-      accentClass: 'bg-blue-600',
+      percent: pctExcellent,
+      count: rep.excellent,
+      color: '#2563EB',
       icon: SparklesIcon,
-      count: cvsCount > 0 ? Math.max(1, Math.round(cvsCount * 0.62)) : 0,
-      badgeText: 'Optimal',
+      badgeText: rep.excellent > 0 ? `${rep.excellent} bilan(s)` : '0',
       badgeColor: 'text-blue-600',
     },
     {
       id: 'bon',
-      label: 'Profils Favorables (60-80%)',
-      subtext: 'Ajustements mineurs',
-      percent: 28,
-      color: '#38BDF8', // Sky 400
-      accentClass: 'bg-sky-400',
+      label: 'Scores Favorables (60-79%)',
+      subtext: 'Ajustements mineurs conseillés',
+      percent: pctBon,
+      count: rep.bon,
+      color: '#38BDF8',
       icon: TargetIcon,
-      count: cvsCount > 0 ? Math.max(0, Math.round(cvsCount * 0.28)) : 0,
-      badgeText: 'Favorable',
+      badgeText: rep.bon > 0 ? `${rep.bon} bilan(s)` : '0',
       badgeColor: 'text-sky-600',
     },
     {
       id: 'optimiser',
       label: 'À perfectionner (< 60%)',
       subtext: 'Mots-clés à enrichir',
-      percent: 10,
-      color: '#CBD5E1', // Slate 300
-      accentClass: 'bg-slate-300',
+      percent: pctAmeliorer,
+      count: rep.aAmeliorer,
+      color: '#CBD5E1',
       icon: ShieldCheckIcon,
-      count: cvsCount > 0 ? Math.max(0, Math.round(cvsCount * 0.10)) : 0,
-      badgeText: 'À revoir',
+      badgeText: rep.aAmeliorer > 0 ? `${rep.aAmeliorer} bilan(s)` : '0',
       badgeColor: 'text-slate-500',
     },
   ];
@@ -49,7 +53,6 @@ export default function DonutChartCard({ cvsCount = 0 }) {
   const strokeWidth = 22;
   const circumference = 2 * Math.PI * radius;
 
-  // Calcul du strokeDashoffset pour chaque segment
   let accumulatedOffset = 0;
   const renderedSegments = segments.map((seg) => {
     const strokeDasharray = `${(seg.percent / 100) * circumference} ${circumference}`;
@@ -59,14 +62,14 @@ export default function DonutChartCard({ cvsCount = 0 }) {
   });
 
   return (
-    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-col justify-between text-left">
+    <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-col justify-between text-left h-full">
       {/* ── En-tête de la carte ── */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-base font-extrabold text-slate-900 tracking-tight">
-            Répartition des Profils ATS
+            Répartition de Vos Bilans
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">Classification des analyses</p>
+          <p className="text-xs text-slate-400 mt-0.5">Classification de vos analyses réelles</p>
         </div>
         <button
           type="button"
@@ -95,38 +98,39 @@ export default function DonutChartCard({ cvsCount = 0 }) {
             strokeWidth={strokeWidth}
           />
 
-          {/* Segments colorés */}
-          {renderedSegments.map((seg) => (
-            <circle
-              key={seg.id}
-              cx="90"
-              cy="90"
-              r={radius}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={strokeWidth}
-              strokeDasharray={seg.strokeDasharray}
-              strokeDashoffset={seg.strokeDashoffset}
-              strokeLinecap="round"
-              className="transition-all duration-500 cursor-pointer hover:opacity-90"
-              onMouseEnter={() => setActiveItem(seg.id)}
-              onMouseLeave={() => setActiveItem(null)}
-            />
-          ))}
+          {/* Segments colorés réels */}
+          {analysesTerminees > 0 &&
+            renderedSegments.map((seg) => (
+              <circle
+                key={seg.id}
+                cx="90"
+                cy="90"
+                r={radius}
+                fill="none"
+                stroke={seg.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={seg.strokeDasharray}
+                strokeDashoffset={seg.strokeDashoffset}
+                strokeLinecap="round"
+                className="transition-all duration-500 cursor-pointer hover:opacity-90"
+                onMouseEnter={() => setActiveItem(seg.id)}
+                onMouseLeave={() => setActiveItem(null)}
+              />
+            ))}
         </svg>
 
         {/* Texte au centre du Donut */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
           <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
-            {cvsCount > 0 ? '78%' : '—'}
+            {scoreMoyen !== null && scoreMoyen !== undefined ? `${scoreMoyen}%` : '—'}
           </span>
           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-            Score Moyen
+            {analysesTerminees > 0 ? 'Score Moyen' : 'Aucune note'}
           </span>
         </div>
       </div>
 
-      {/* ── Liste de répartition détaillée sous le Donut ── */}
+      {/* ── Liste de répartition réelle ── */}
       <div className="space-y-3 pt-3 border-t border-slate-100">
         {segments.map((seg) => {
           const Icon = seg.icon;
@@ -136,7 +140,7 @@ export default function DonutChartCard({ cvsCount = 0 }) {
               key={seg.id}
               onMouseEnter={() => setActiveItem(seg.id)}
               onMouseLeave={() => setActiveItem(null)}
-              className={`flex items-center justify-between p-2 rounded-xl transition-colors cursor-pointer ${
+              className={`flex items-center justify-between p-2 rounded-xl transition-colors ${
                 isActive ? 'bg-slate-50' : ''
               }`}
             >
@@ -159,7 +163,7 @@ export default function DonutChartCard({ cvsCount = 0 }) {
 
               <div className="text-right">
                 <span className={`text-xs font-extrabold ${seg.badgeColor}`}>
-                  {seg.percent}%
+                  {analysesTerminees > 0 ? `${seg.percent}%` : '0%'}
                 </span>
                 <p className="text-[10px] text-slate-400">{seg.badgeText}</p>
               </div>
@@ -169,10 +173,8 @@ export default function DonutChartCard({ cvsCount = 0 }) {
       </div>
 
       {/* ── Pied de carte ── */}
-      <div className="pt-3 mt-2 border-t border-slate-100 text-center">
-        <span className="text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer">
-          Voir tous les critères d'évaluation →
-        </span>
+      <div className="pt-3 mt-2 border-t border-slate-100 text-center text-xs text-slate-400">
+        {analysesTerminees} analyse(s) finalisée(s) au total
       </div>
     </div>
   );

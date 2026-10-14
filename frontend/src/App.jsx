@@ -10,6 +10,7 @@ import UploadPage from './pages/UploadPage';
 import AnalysePage from './pages/AnalysePage';
 import HistoriquePage from './pages/HistoriquePage';
 import ProfilePage from './pages/ProfilePage';
+import MesCvsPage from './pages/MesCvsPage';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
             {/* Routes protégées : ProtectedRoute vérifie le JWT */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/mes-cvs" element={<MesCvsPage />} />
+              <Route path="/cvs" element={<Navigate to="/mes-cvs" replace />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/profil" element={<ProfilePage />} />
               <Route path="/profile" element={<ProfilePage />} />

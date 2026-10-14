@@ -117,11 +117,7 @@ export default function HomePage() {
               </button>
             </Link>
 
-            {/* Pilule de réassurance LoopCV */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-slate-200/90 shadow-2xs text-xs font-semibold text-slate-700">
-              <span>🚀</span>
-              <span><strong>92%</strong> de nos utilisateurs augmentent leur taux de réponse aux candidatures</span>
-            </div>
+           
 
             <p className="text-xs text-slate-400 font-medium">Démarrer gratuitement sans engagement</p>
           </div>

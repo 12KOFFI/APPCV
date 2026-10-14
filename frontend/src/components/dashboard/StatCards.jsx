@@ -6,44 +6,50 @@ import {
   TrendingUpIcon,
 } from '../ui/Icons';
 
-export default function StatCards({ cvsCount = 0 }) {
+export default function StatCards({ stats, cvsCount = 0 }) {
+  const totalCvs = stats?.totalCvs ?? cvsCount;
+  const totalAnalyses = stats?.totalAnalyses ?? 0;
+  const analysesTerminees = stats?.analysesTerminees ?? 0;
+  const scoreMoyen = stats?.scoreMoyen;
+  const totalCompetences = stats?.totalCompetences ?? 0;
+
   const cards = [
     {
       title: 'Total des CV',
-      value: `${cvsCount}`,
-      subtext: 'Derniers 30 jours',
-      trend: '+100%',
-      isPositive: true,
+      value: `${totalCvs}`,
+      subtext: totalCvs > 1 ? 'Documents enregistrés' : 'Document enregistré',
+      trend: totalCvs > 0 ? `${totalCvs} actif(s)` : 'Aucun',
+      isPositive: totalCvs > 0,
       icon: FileTextIcon,
       iconBg: 'bg-blue-50',
       iconColor: 'text-blue-600',
     },
     {
       title: 'Analyses IA Réalisées',
-      value: cvsCount > 0 ? `${cvsCount * 2}` : '0',
-      subtext: 'Derniers 30 jours',
-      trend: '+14.8%',
-      isPositive: true,
+      value: `${analysesTerminees}`,
+      subtext: totalAnalyses > analysesTerminees ? `${totalAnalyses - analysesTerminees} en cours` : 'Rapports complétés',
+      trend: analysesTerminees > 0 ? `${analysesTerminees} finalisée(s)` : 'Aucune',
+      isPositive: analysesTerminees > 0,
       icon: FolderIcon,
       iconBg: 'bg-indigo-50',
       iconColor: 'text-indigo-600',
     },
     {
       title: 'Score ATS Moyen',
-      value: cvsCount > 0 ? '78%' : '—',
-      subtext: 'Objectif marché > 75%',
-      trend: '+8.4%',
-      isPositive: true,
+      value: scoreMoyen !== null && scoreMoyen !== undefined ? `${scoreMoyen}%` : '—',
+      subtext: scoreMoyen ? 'Moyenne de vos bilans' : 'Aucun CV analysé',
+      trend: scoreMoyen ? (scoreMoyen >= 75 ? 'Optimal' : 'À améliorer') : 'En attente',
+      isPositive: scoreMoyen ? scoreMoyen >= 70 : false,
       icon: TargetIcon,
       iconBg: 'bg-emerald-50',
       iconColor: 'text-emerald-600',
     },
     {
       title: 'Compétences Détectées',
-      value: cvsCount > 0 ? `${cvsCount * 18 + 7}` : '0',
-      subtext: 'Derniers 30 jours',
-      trend: '+5.2%',
-      isPositive: true,
+      value: `${totalCompetences}`,
+      subtext: totalCompetences > 0 ? 'Compétences uniques indexées' : 'En attente d\'analyse',
+      trend: totalCompetences > 0 ? `${totalCompetences} identifiée(s)` : '0',
+      isPositive: totalCompetences > 0,
       icon: ShieldCheckIcon,
       iconBg: 'bg-amber-50',
       iconColor: 'text-amber-600',
@@ -76,15 +82,15 @@ export default function StatCards({ cvsCount = 0 }) {
               {c.value}
             </div>
 
-            {/* Bas de la carte : Période et indicateur de progression */}
+            {/* Bas de la carte : Période et indicateur réel */}
             <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
               <span className="text-slate-400 font-medium">{c.subtext}</span>
               <span
                 className={`inline-flex items-center gap-1 font-bold ${
-                  c.isPositive ? 'text-emerald-600' : 'text-red-600'
+                  c.isPositive ? 'text-emerald-600' : 'text-slate-400'
                 }`}
               >
-                <TrendingUpIcon className="w-3.5 h-3.5" />
+                {c.isPositive && <TrendingUpIcon className="w-3.5 h-3.5" />}
                 <span>{c.trend}</span>
               </span>
             </div>

@@ -34,14 +34,113 @@ final class CvController extends AbstractController
             ['creeLe' => 'DESC']
         );
 
-        $liste = array_map(fn(Cv $cv) => [
-            'id' => $cv->getId(),
-            'nomOriginal' => $cv->getNomOriginal(),
-            'creeLe' => $cv->getCreeLe()->format(\DateTimeInterface::ATOM),
-            'nombreCaracteres' => mb_strlen($cv->getTexteExtrait() ?? ''),
-        ], $cvs);
+        $liste = array_map(function(Cv $cv) {
+            $analyses = $cv->getAnalyses();
+
+            // Filtrer les analyses terminées avec une note
+            $terminees = $analyses->filter(
+                fn(\App\Entity\Analyse $a) => $a->getStatut() === \App\Entity\Analyse::STATUT_TERMINE && $a->getNote() !== null
+            );
+            $derniereTerminee = $terminees->last() ?: null;
+            $derniereAnalyse = $analyses->last() ?: null;
+
+            return [
+                'id' => $cv->getId(),
+                'nomOriginal' => $cv->getNomOriginal(),
+                'typeMime' => $cv->getTypeMime(),
+                'taille' => $cv->getTaille(),
+                'creeLe' => $cv->getCreeLe()->format(\DateTimeInterface::ATOM),
+                'nombreCaracteres' => mb_strlen($cv->getTexteExtrait() ?? ''),
+                'nombreAnalyses' => $analyses->count(),
+                'derniereNote' => $derniereTerminee?->getNote(),
+                'dernierStatut' => $derniereAnalyse?->getStatut() ?? 'NON_ANALYSE',
+                'derniereAnalyseId' => $derniereAnalyse?->getId(),
+                'competences' => $derniereTerminee?->getCompetences() ?? [],
+                'pointsForts' => $derniereTerminee?->getPointsForts() ?? [],
+                'pointsFaibles' => $derniereTerminee?->getPointsFaibles() ?? [],
+                'recommandations' => $derniereTerminee?->getRecommandations() ?? [],
+            ];
+        }, $cvs);
 
         return $this->json($liste);
+    }
+
+    #[Route('/api/dashboard/stats', name: 'api_dashboard_stats', methods: ['GET'])]
+    public function stats(
+        #[CurrentUser] User $user,
+        CvRepository $cvRepository,
+    ): JsonResponse {
+        $isAdmin = in_array('ROLE_ADMIN', $user->getRoles(), true) || $user->getRole() === 'ROLE_ADMIN';
+        $cvs = $isAdmin
+            ? $cvRepository->findBy([], ['creeLe' => 'DESC'])
+            : $cvRepository->findBy(['proprietaire' => $user], ['creeLe' => 'DESC']);
+        $totalCvs = count($cvs);
+
+        $toutesAnalyses = [];
+        $analysesTerminees = [];
+        $toutesCompetences = [];
+
+        foreach ($cvs as $cv) {
+            foreach ($cv->getAnalyses() as $a) {
+                $toutesAnalyses[] = $a;
+                if ($a->getStatut() === \App\Entity\Analyse::STATUT_TERMINE && $a->getNote() !== null) {
+                    $analysesTerminees[] = $a;
+                    if (is_array($a->getCompetences())) {
+                        foreach ($a->getCompetences() as $comp) {
+                            $toutesCompetences[mb_strtolower(trim($comp))] = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        $totalAnalyses = count($toutesAnalyses);
+        $totalTerminees = count($analysesTerminees);
+
+        $scoreMoyen = null;
+        $repartition = ['excellent' => 0, 'bon' => 0, 'aAmeliorer' => 0];
+
+        if ($totalTerminees > 0) {
+            $sommeNotes = 0;
+            foreach ($analysesTerminees as $a) {
+                $note = $a->getNote();
+                $sommeNotes += $note;
+                if ($note >= 80) {
+                    $repartition['excellent']++;
+                } elseif ($note >= 60) {
+                    $repartition['bon']++;
+                } else {
+                    $repartition['aAmeliorer']++;
+                }
+            }
+            $scoreMoyen = (int) round($sommeNotes / $totalTerminees);
+        }
+
+        // Tri chronologique des analyses pour l'évolution
+        usort($analysesTerminees, fn(\App\Entity\Analyse $a, \App\Entity\Analyse $b) => $a->getCreeLe() <=> $b->getCreeLe());
+        $historique = array_map(fn(\App\Entity\Analyse $a) => [
+            'id' => $a->getId(),
+            'cvId' => $a->getCv()->getId(),
+            'nomCv' => $a->getCv()->getNomOriginal(),
+            'score' => $a->getNote(),
+            'creeLe' => $a->getCreeLe()->format(\DateTimeInterface::ATOM),
+        ], $analysesTerminees);
+
+        // Dernières recommandations réelles
+        $derniere = !empty($analysesTerminees) ? end($analysesTerminees) : null;
+        $derniersConseils = $derniere?->getRecommandations() ?? [];
+
+        return $this->json([
+            'totalCvs' => $totalCvs,
+            'totalAnalyses' => $totalAnalyses,
+            'analysesTerminees' => $totalTerminees,
+            'scoreMoyen' => $scoreMoyen,
+            'totalCompetences' => count($toutesCompetences),
+            'repartition' => $repartition,
+            'historique' => $historique,
+            'derniersConseils' => $derniersConseils,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
     #[Route('/api/cv', name: 'api_cv_upload', methods: ['POST'])]
