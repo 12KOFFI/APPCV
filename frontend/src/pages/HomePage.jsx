@@ -107,17 +107,13 @@ export default function HomePage() {
 
           {/* Bouton CTA format rectangulaire noir LoopCV */}
           <div className="flex flex-col items-center justify-center gap-4 mb-8">
-            <Link to="/register">
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer group"
-              >
-                <span>Commencez dès maintenant</span>
-                <span className="group-hover:translate-x-1.5 transition-transform duration-200">→</span>
-              </button>
+            <Link
+              to="/register"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer group"
+            >
+              <span>Commencez dès maintenant</span>
+              <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
             </Link>
-
-           
 
             <p className="text-xs text-slate-400 font-medium">Démarrer gratuitement sans engagement</p>
           </div>
@@ -192,13 +188,12 @@ export default function HomePage() {
                   <strong>Diagnostic IA :</strong> 5 recommandations clés prêtes à appliquer pour votre prochain entretien.
                 </span>
               </div>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-2xs whitespace-nowrap cursor-pointer"
-                >
-                  Tester mon CV →
-                </button>
+              <Link
+                to="/register"
+                className="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-2xs whitespace-nowrap cursor-pointer inline-flex items-center gap-1.5 group"
+              >
+                <span>Tester mon CV</span>
+                <ArrowRightIcon className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -269,13 +264,11 @@ export default function HomePage() {
               </div>
 
               <div>
-                <Link to="/register">
-                  <button
-                    type="button"
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    En savoir plus
-                  </button>
+                <Link
+                  to="/register"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  En savoir plus
                 </Link>
               </div>
             </div>
@@ -295,13 +288,11 @@ export default function HomePage() {
               </div>
 
               <div>
-                <Link to="/register">
-                  <button
-                    type="button"
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    En savoir plus
-                  </button>
+                <Link
+                  to="/register"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  En savoir plus
                 </Link>
               </div>
             </div>
@@ -321,13 +312,11 @@ export default function HomePage() {
               </div>
 
               <div>
-                <Link to="/register">
-                  <button
-                    type="button"
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    En savoir plus
-                  </button>
+                <Link
+                  to="/register"
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-sky-600 text-sky-800 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                >
+                  En savoir plus
                 </Link>
               </div>
             </div>
@@ -352,21 +341,19 @@ export default function HomePage() {
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-6">
                 Plus besoin d'outils complexes. Importez votre fichier PDF ou Word en un clic. Notre plateforme conserve l'historique complet de vos documents pour vous permettre de mesurer vos progrès à chaque mise à jour.
               </p>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
-                >
-                  <span>Découvrir le gestionnaire de CV</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+              <Link
+                to="/register"
+                className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
+              >
+                <span>Découvrir le gestionnaire de CV</span>
+                <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
             {/* Mockup avec forme géométrique teal/cyan en arrière-plan */}
             <div className="relative flex items-center justify-center">
               {/* Forme géométrique arrière-plan */}
-              <div className="absolute w-72 h-44 sm:w-96 sm:h-52 rounded-full bg-[#0D9488]/80 -rotate-6 transform -z-0 blur-xs" />
+              <div className="absolute w-72 h-44 sm:w-96 sm:h-52 rounded-full bg-[#0D9488]/80 -rotate-6 transform -z-0 blur-[2px]" />
 
               {/* Carte Mockup premier plan */}
               <div className="relative z-10 w-full max-w-md p-6 rounded-2xl bg-white border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
@@ -440,14 +427,12 @@ export default function HomePage() {
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-6">
                 Fini le doute sur la qualité de votre candidature. APPCV calcule des métriques objectives pour savoir exactement où vous vous situez par rapport aux exigences réelles des recruteurs.
               </p>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
-                >
-                  <span>Voir mes statistiques ATS</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+              <Link
+                to="/register"
+                className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
+              >
+                <span>Voir mes statistiques ATS</span>
+                <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
           </div>
@@ -464,14 +449,12 @@ export default function HomePage() {
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed mb-6">
                 L’IA ne se contente pas de vous noter : elle vous donne 5 conseils personnalisés pour reformuler vos expériences, ajouter les bons verbes d’action et maximiser votre score.
               </p>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
-                >
-                  <span>Générer mes recommandations</span>
-                  <span className="group-hover:translate-x-1 transition-transform">→</span>
-                </button>
+              <Link
+                to="/register"
+                className="px-6 py-3 rounded-lg text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-xs cursor-pointer inline-flex items-center gap-2 group"
+              >
+                <span>Générer mes recommandations</span>
+                <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
 
@@ -601,15 +584,16 @@ export default function HomePage() {
           </div>
 
           <div className="space-y-3 mb-12">
-            {faqs.map((faq, index) => {
-              const estOuverte = faqOuverte === index;
+            {faqs.map((faq) => {
+              const estOuverte = faqOuverte === faq.question;
               return (
                 <div
-                  key={index}
+                  key={faq.question}
                   className="rounded-xl border border-slate-200/90 bg-white overflow-hidden transition-all duration-200 hover:border-slate-300 shadow-2xs"
                 >
                   <button
-                    onClick={() => setFaqOuverte(estOuverte ? -1 : index)}
+                    type="button"
+                    onClick={() => setFaqOuverte(estOuverte ? null : faq.question)}
                     className="w-full px-6 py-4.5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-sm hover:text-blue-600 transition cursor-pointer"
                   >
                     <span>{faq.question}</span>
@@ -631,14 +615,12 @@ export default function HomePage() {
 
           {/* Bouton CTA format rectangulaire noir sous la FAQ comme Loopcv */}
           <div className="text-center">
-            <Link to="/register">
-              <button
-                type="button"
-                className="px-8 py-3.5 rounded-lg text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg cursor-pointer inline-flex items-center gap-2 group"
-              >
-                <span>Commencez dès maintenant</span>
-                <span className="group-hover:translate-x-1.5 transition-transform duration-200">→</span>
-              </button>
+            <Link
+              to="/register"
+              className="px-8 py-3.5 rounded-lg text-sm font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-md hover:shadow-lg cursor-pointer inline-flex items-center gap-2 group"
+            >
+              <span>Commencez dès maintenant</span>
+              <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
             </Link>
           </div>
         </div>
@@ -667,13 +649,11 @@ export default function HomePage() {
                   Vérifiez instantanément la lisibilité de votre police, rubriques et colonnes.
                 </p>
               </div>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="w-full py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
-                >
-                  En savoir plus
-                </button>
+              <Link
+                to="/register"
+                className="w-full inline-flex items-center justify-center py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
+              >
+                En savoir plus
               </Link>
             </div>
 
@@ -685,13 +665,11 @@ export default function HomePage() {
                   Obtenez une estimation de votre note globale sur 100 face au marché.
                 </p>
               </div>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="w-full py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
-                >
-                  En savoir plus
-                </button>
+              <Link
+                to="/register"
+                className="w-full inline-flex items-center justify-center py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
+              >
+                En savoir plus
               </Link>
             </div>
 
@@ -703,13 +681,11 @@ export default function HomePage() {
                   Détectez les termes techniques manquants face à une offre d'emploi ciblée.
                 </p>
               </div>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="w-full py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
-                >
-                  En savoir plus
-                </button>
+              <Link
+                to="/register"
+                className="w-full inline-flex items-center justify-center py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
+              >
+                En savoir plus
               </Link>
             </div>
 
@@ -721,13 +697,11 @@ export default function HomePage() {
                   Téléchargez un rapport A4 professionnel pour vos entretiens et bilans.
                 </p>
               </div>
-              <Link to="/register">
-                <button
-                  type="button"
-                  className="w-full py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
-                >
-                  En savoir plus
-                </button>
+              <Link
+                to="/register"
+                className="w-full inline-flex items-center justify-center py-2 px-3 rounded-lg border border-sky-600 text-sky-700 hover:bg-sky-50 font-bold text-xs tracking-tight transition-all cursor-pointer"
+              >
+                En savoir plus
               </Link>
             </div>
           </div>
@@ -745,14 +719,12 @@ export default function HomePage() {
           <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-relaxed">
             Rejoignez des milliers de candidats qui ont maximisé l'impact de leur CV grâce à l'analyse par intelligence artificielle.
           </p>
-          <Link to="/register">
-            <button
-              type="button"
-              className="px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group"
-            >
-              <span>Commencez dès maintenant</span>
-              <span className="group-hover:translate-x-1.5 transition-transform duration-200">→</span>
-            </button>
+          <Link
+            to="/register"
+            className="px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group"
+          >
+            <span>Commencez dès maintenant</span>
+            <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
           </Link>
         </div>
       </section>
