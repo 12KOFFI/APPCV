@@ -26,6 +26,17 @@ export default function HomePage() {
   const [faqOuverte, setFaqOuverte] = useState(0);
   const location = useLocation();
 
+  // Le mode sombre ne doit jamais être activé sur la page d'accueil
+  useEffect(() => {
+    document.documentElement.classList.remove('dark');
+    return () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (location.hash) {
       const targetId = location.hash.replace('#', '');
