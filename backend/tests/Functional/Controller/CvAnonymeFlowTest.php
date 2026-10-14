@@ -187,5 +187,153 @@ class CvAnonymeFlowTest extends WebTestCase
             }
         }
     }
+
+    public function testParcoursCompletRecuperationBrouillonEtLancementAnalyse(): void
+    {
+        $client = static::createClient();
+        $tempPdf = tempnam(sys_get_temp_dir(), 'test_brouillon_') . '.pdf';
+        $this->creerFichierPdfValide($tempPdf);
+
+        try {
+            $uploadedFile = new UploadedFile($tempPdf, 'cv_mon_brouillon.pdf', 'application/pdf', null, true);
+            $uniqueIp = sprintf('172.16.%d.%d', mt_rand(10, 200), mt_rand(10, 200));
+
+            // 1. Upload Anonyme avec texte d'offre facultative
+            $client->request(
+                'POST',
+                '/api/cv',
+                ['texteOffre' => 'Offre Senior Symfony / React chez TechCo'],
+                ['cv' => $uploadedFile],
+                ['REMOTE_ADDR' => $uniqueIp]
+            );
+
+            $this->assertResponseStatusCodeSame(201);
+            $uploadData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertArrayHasKey('claimToken', $uploadData);
+            $rawClaimToken = $uploadData['claimToken'];
+            $cvId = $uploadData['id'];
+
+            // 2. Inscription / Connexion de l'utilisateur
+            $email = sprintf('candidat_%s@example.com', bin2hex(random_bytes(6)));
+            $jwt = $this->creerUtilisateurEtObtenirToken($client, $email);
+
+            // 3. Rattachement via le body JSON avec claimToken (fallback résilient)
+            $client->request(
+                'POST',
+                '/api/cv/rattacher',
+                [],
+                [],
+                [
+                    'HTTP_AUTHORIZATION' => 'Bearer ' . $jwt,
+                    'CONTENT_TYPE' => 'application/json',
+                ],
+                json_encode(['claimToken' => $rawClaimToken])
+            );
+
+            $this->assertResponseStatusCodeSame(200);
+            $rattacherData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertTrue($rattacherData['succes']);
+            $this->assertSame($cvId, $rattacherData['cvId']);
+            $this->assertSame('Offre Senior Symfony / React chez TechCo', $rattacherData['texteOffre']);
+
+            // 4. Récupération du brouillon sur GET /api/cv/brouillon
+            $client->request(
+                'GET',
+                '/api/cv/brouillon',
+                [],
+                [],
+                ['HTTP_AUTHORIZATION' => 'Bearer ' . $jwt]
+            );
+
+            $this->assertResponseStatusCodeSame(200);
+            $brouillonData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertNotNull($brouillonData['brouillon']);
+            $this->assertSame($cvId, $brouillonData['brouillon']['id']);
+            $this->assertSame('cv_mon_brouillon.pdf', $brouillonData['brouillon']['nomOriginal']);
+            $this->assertSame('Offre Senior Symfony / React chez TechCo', $brouillonData['brouillon']['texteOffre']);
+            $this->assertGreaterThan(0, $brouillonData['brouillon']['nombreCaracteres']);
+
+            // 5. Lancement effectif de l'analyse IA depuis /upload
+            $client->request(
+                'POST',
+                sprintf('/api/cv/%d/analyse', $cvId),
+                [],
+                [],
+                [
+                    'HTTP_AUTHORIZATION' => 'Bearer ' . $jwt,
+                    'CONTENT_TYPE' => 'application/json',
+                ],
+                json_encode(['texteOffre' => 'Offre Senior Symfony / React mise à jour'])
+            );
+
+            $this->assertResponseStatusCodeSame(202);
+            $analyseData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertArrayHasKey('analyseId', $analyseData);
+
+            // 6. Vérification : le CV étant désormais en analyse, GET /api/cv/brouillon retourne null
+            $client->request(
+                'GET',
+                '/api/cv/brouillon',
+                [],
+                [],
+                ['HTTP_AUTHORIZATION' => 'Bearer ' . $jwt]
+            );
+
+            $this->assertResponseStatusCodeSame(200);
+            $brouillonApresAnalyse = json_decode($client->getResponse()->getContent(), true);
+            $this->assertNull($brouillonApresAnalyse['brouillon']);
+
+            // 7. Isolation de sécurité : un autre utilisateur ne peut pas accéder à ce brouillon
+            $autreEmail = sprintf('autre_%s@example.com', bin2hex(random_bytes(6)));
+            $autreJwt = $this->creerUtilisateurEtObtenirToken($client, $autreEmail);
+
+            $client->request(
+                'GET',
+                sprintf('/api/cv/brouillon?id=%d', $cvId),
+                [],
+                [],
+                ['HTTP_AUTHORIZATION' => 'Bearer ' . $autreJwt]
+            );
+
+            $this->assertResponseStatusCodeSame(200);
+            $isolationData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertNull($isolationData['brouillon']);
+        } finally {
+            if (file_exists($tempPdf)) {
+                @unlink($tempPdf);
+            }
+        }
+    }
+
+    public function testRattacherJetonInvalideOuInexistant(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('test_%s@example.com', bin2hex(random_bytes(6)));
+        $jwt = $this->creerUtilisateurEtObtenirToken($client, $email);
+
+        // Sans jeton -> 400
+        $client->request(
+            'POST',
+            '/api/cv/rattacher',
+            [],
+            [],
+            ['HTTP_AUTHORIZATION' => 'Bearer ' . $jwt]
+        );
+        $this->assertResponseStatusCodeSame(400);
+
+        // Jeton inconnu ou expiré -> 404
+        $client->request(
+            'POST',
+            '/api/cv/rattacher',
+            [],
+            [],
+            [
+                'HTTP_AUTHORIZATION' => 'Bearer ' . $jwt,
+                'CONTENT_TYPE' => 'application/json',
+            ],
+            json_encode(['claimToken' => 'jeton_completement_invalide_1234567890'])
+        );
+        $this->assertResponseStatusCodeSame(404);
+    }
 }
 

@@ -239,14 +239,14 @@ final class CvController extends AbstractController
         $entite->setJetonExpireLe($expiration);
         $em->flush();
 
-        // Pose du Cookie HttpOnly (cv_claim_token = rawToken, Secure, SameSite=Lax, Path=/api)
+        // Pose du Cookie HttpOnly (cv_claim_token = rawToken, Secure si HTTPS, SameSite=Lax, Path=/api)
         $cookie = Cookie::create(
             'cv_claim_token',
             $rawClaimToken,
             $expiration,
             '/api',
             null,
-            true,
+            $request->isSecure(),
             true,
             false,
             Cookie::SAMESITE_LAX
@@ -256,6 +256,7 @@ final class CvController extends AbstractController
             'id' => $entite->getId(),
             'nomOriginal' => $entite->getNomOriginal(),
             'taille' => $entite->getTaille(),
+            'claimToken' => $rawClaimToken,
             'rattacheAuCompte' => false,
             'enAttenteAuthentification' => true,
             'message' => 'CV enregistré temporairement. Authentifiez-vous pour lancer l\'analyse par IA.',
@@ -274,9 +275,13 @@ final class CvController extends AbstractController
         CvRepository $cvRepository,
         EntityManagerInterface $em,
     ): JsonResponse {
-        $rawToken = $request->cookies->get('cv_claim_token');
+        $body = json_decode($request->getContent(), true);
+        $rawToken = $request->cookies->get('cv_claim_token')
+            ?? $request->headers->get('X-Claim-Token')
+            ?? ($body['claimToken'] ?? null)
+            ?? $request->request->get('claimToken');
 
-        if (empty($rawToken)) {
+        if (empty($rawToken) || !is_string($rawToken)) {
             return $this->json([
                 'erreur' => 'Aucun jeton de rattachement trouvé dans la session.',
             ], Response::HTTP_BAD_REQUEST);
@@ -340,12 +345,57 @@ final class CvController extends AbstractController
             'message' => 'CV rattaché avec succès à votre compte.',
             'cvId' => $cv->getId(),
             'nomOriginal' => $cv->getNomOriginal(),
+            'taille' => $cv->getTaille(),
+            'texteOffre' => $cv->getTexteOffre(),
+            'nombreCaracteres' => mb_strlen($cv->getTexteExtrait() ?? ''),
         ], Response::HTTP_OK);
 
         // Invalidation immédiate en session : suppression du cookie HttpOnly
         $response->headers->clearCookie('cv_claim_token', '/api');
 
         return $response;
+    }
+
+    #[Route('/api/cv/brouillon', name: 'api_cv_brouillon', methods: ['GET'])]
+    public function recupererBrouillon(
+        Request $request,
+        #[CurrentUser] User $user,
+        CvRepository $cvRepository,
+    ): JsonResponse {
+        $cvId = $request->query->getInt('id', 0);
+        $cv = null;
+
+        if ($cvId > 0) {
+            $cv = $cvRepository->findOneBy(['id' => $cvId, 'proprietaire' => $user]);
+        } else {
+            // Rechercher le dernier CV du propriétaire qui n'a pas encore d'analyse
+            $qb = $cvRepository->createQueryBuilder('c')
+                ->leftJoin('c.analyses', 'a')
+                ->where('c.proprietaire = :user')
+                ->andWhere('a.id IS NULL')
+                ->setParameter('user', $user)
+                ->orderBy('c.creeLe', 'DESC')
+                ->setMaxResults(1);
+
+            $cv = $qb->getQuery()->getOneOrNullResult();
+        }
+
+        if (!$cv) {
+            return $this->json(['brouillon' => null], Response::HTTP_OK);
+        }
+
+        return $this->json([
+            'brouillon' => [
+                'id' => $cv->getId(),
+                'nomOriginal' => $cv->getNomOriginal(),
+                'taille' => $cv->getTaille(),
+                'typeMime' => $cv->getTypeMime(),
+                'texteOffre' => $cv->getTexteOffre(),
+                'nombreCaracteres' => mb_strlen($cv->getTexteExtrait() ?? ''),
+                'creeLe' => $cv->getCreeLe()->format(\DateTimeInterface::ATOM),
+                'apercuExtrait' => mb_substr($cv->getTexteExtrait() ?? '', 0, 300),
+            ]
+        ], Response::HTTP_OK);
     }
 
     #[Route('/api/cv/{id}/analyse', name: 'api_cv_analyse', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -360,8 +410,17 @@ final class CvController extends AbstractController
             return $this->json(['erreur' => 'Accès refusé à ce CV.'], Response::HTTP_FORBIDDEN);
         }
 
+        // Si une offre est fournie dans la requête, on la prend et met à jour le CV ; sinon on prend celle déjà attachée au CV
+        $texteOffre = ($dto && $dto->texteOffre !== null && trim($dto->texteOffre) !== '')
+            ? trim($dto->texteOffre)
+            : $cv->getTexteOffre();
+
+        if ($dto && $dto->texteOffre !== null && $texteOffre !== $cv->getTexteOffre()) {
+            $cv->setTexteOffre($texteOffre);
+        }
+
         // 1. Création de l'entité Analyse en attente
-        $analyse = new \App\Entity\Analyse($cv, $dto?->texteOffre);
+        $analyse = new \App\Entity\Analyse($cv, $texteOffre);
         $analyse->setStatut(\App\Entity\Analyse::STATUT_EN_ATTENTE);
         $em->persist($analyse);
         $em->flush();

@@ -30,22 +30,32 @@ export default function LoginPage() {
       await login(email, motDePasse);
 
       // Rattachement automatique du CV téléversé avant connexion
+      const claimToken = sessionStorage.getItem('cv_claim_token');
       try {
-        const claimRes = await client.post('/api/cv/rattacher');
+        const claimRes = await client.post('/api/cv/rattacher', claimToken ? { claimToken } : {});
         if (claimRes.data?.succes) {
-          navigate('/dashboard', {
+          sessionStorage.removeItem('cv_claim_token');
+          sessionStorage.removeItem('pending_cv_info');
+          // Redirection directe vers /upload pour retrouver le CV prérempli
+          navigate('/upload', {
+            replace: true,
             state: {
               cvRattache: true,
               cvId: claimRes.data.cvId,
               nomCv: claimRes.data.nomOriginal,
+              texteOffre: claimRes.data.texteOffre,
+              nombreCaracteres: claimRes.data.nombreCaracteres,
             },
           });
           return;
         }
       } catch {
-        // Aucun CV en attente ou déjà rattaché
+        // Aucun CV en attente ou jeton invalide
+        sessionStorage.removeItem('cv_claim_token');
+        sessionStorage.removeItem('pending_cv_info');
       }
 
+      // Sans CV en attente, redirection habituelle vers le dashboard
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.status === 401 || err.response?.data?.message === 'Invalid credentials.') {

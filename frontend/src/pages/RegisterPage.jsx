@@ -52,20 +52,28 @@ export default function RegisterPage() {
       try {
         await login(email, motDePasse);
         // Tentative de rattachement automatique du CV téléversé anonymement
+        const claimToken = sessionStorage.getItem('cv_claim_token');
         try {
-          const claimRes = await client.post('/api/cv/rattacher');
+          const claimRes = await client.post('/api/cv/rattacher', claimToken ? { claimToken } : {});
           if (claimRes.data?.succes) {
-            navigate('/dashboard', {
+            sessionStorage.removeItem('cv_claim_token');
+            sessionStorage.removeItem('pending_cv_info');
+            navigate('/upload', {
+              replace: true,
               state: {
                 cvRattache: true,
                 cvId: claimRes.data.cvId,
                 nomCv: claimRes.data.nomOriginal,
+                texteOffre: claimRes.data.texteOffre,
+                nombreCaracteres: claimRes.data.nombreCaracteres,
               },
             });
             return;
           }
         } catch {
           // Aucun CV anonyme en attente
+          sessionStorage.removeItem('cv_claim_token');
+          sessionStorage.removeItem('pending_cv_info');
         }
         navigate('/dashboard');
         return;

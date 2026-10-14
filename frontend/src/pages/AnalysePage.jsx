@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useLocation, Link } from 'react-router-dom';
 import client from '../api/client';
 import AnalysePolling from '../components/AnalysePolling';
 import AnalyseResult from '../components/AnalyseResult';
@@ -9,9 +9,10 @@ import { SparklesIcon, AlertCircleIcon } from '../components/ui/Icons';
 
 export default function AnalysePage() {
   const { id } = useParams();
-  const [texteOffre, setTexteOffre] = useState('');
-  const [etape, setEtape] = useState('formulaire'); // 'formulaire' | 'chargement' | 'resultat'
-  const [analyseId, setAnalyseId] = useState(null);
+  const location = useLocation();
+  const [texteOffre, setTexteOffre] = useState(location.state?.texteOffre || '');
+  const [etape, setEtape] = useState(location.state?.analyseId ? 'chargement' : 'formulaire');
+  const [analyseId, setAnalyseId] = useState(location.state?.analyseId || null);
   const [resultat, setResultat] = useState(null);
   const [erreur, setErreur] = useState('');
   const [chargementLancement, setChargementLancement] = useState(false);
