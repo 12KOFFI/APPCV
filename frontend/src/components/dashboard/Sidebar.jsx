@@ -45,7 +45,7 @@ export default function Sidebar({
 
   const secondaryItems = [
     {
-      label: 'Mon Profil & Sécurité',
+      label: 'Mon Profil',
       to: '/profil',
       icon: UserIcon,
       active: location.pathname === '/profil' || location.pathname === '/profile',

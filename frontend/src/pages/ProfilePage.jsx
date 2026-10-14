@@ -132,7 +132,7 @@ export default function ProfilePage() {
             </Link>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Mon Profil & Sécurité
+            Mon Profil
           </h1>
           <p className="text-slate-500 text-xs sm:text-sm mt-1">
             Gérez simplement vos informations de compte et modifiez votre mot de passe en toute sécurité.
