@@ -1,4 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
+﻿import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/useAuth';
 import Badge from '../ui/Badge';
 import {
   FileTextIcon,
@@ -7,6 +8,8 @@ import {
   UserIcon,
   ExternalLinkIcon,
   SparklesIcon,
+  BarChartIcon,
+  ShieldCheckIcon,
 } from '../ui/Icons';
 
 export default function Sidebar({
@@ -15,6 +18,12 @@ export default function Sidebar({
   cvsCount = 0,
 }) {
   const location = useLocation();
+  const { user } = useAuth();
+
+  const isAdmin = Boolean(
+    user?.role === 'ROLE_ADMIN' ||
+    user?.roles?.includes('ROLE_ADMIN')
+  );
 
   const menuItems = [
     {
@@ -43,6 +52,33 @@ export default function Sidebar({
     },
   ];
 
+  const adminItems = [
+    {
+      label: 'Console Globale',
+      to: '/admin',
+      icon: BarChartIcon,
+      active: location.pathname === '/admin',
+    },
+    {
+      label: 'Gestion Utilisateurs',
+      to: '/admin/users',
+      icon: UserIcon,
+      active: location.pathname.startsWith('/admin/users'),
+    },
+    {
+      label: 'CVs & Analyses',
+      to: '/admin/cvs',
+      icon: FileTextIcon,
+      active: location.pathname.startsWith('/admin/cvs'),
+    },
+    {
+      label: 'Système & RGPD',
+      to: '/admin/system',
+      icon: ShieldCheckIcon,
+      active: location.pathname.startsWith('/admin/system'),
+    },
+  ];
+
   const secondaryItems = [
     {
       label: 'Mon Profil',
@@ -51,7 +87,7 @@ export default function Sidebar({
       active: location.pathname === '/profil' || location.pathname === '/profile',
     },
     {
-      label: 'Page d’accueil publique',
+      label: "Page d'accueil publique",
       to: '/',
       icon: ExternalLinkIcon,
       active: false,
@@ -83,8 +119,8 @@ export default function Sidebar({
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight">APPCV</span>
-              <Badge variant="blue" size="sm" className="font-bold text-[10px] px-1.5 py-0.5">
-                IA
+              <Badge variant={isAdmin ? 'purple' : 'blue'} size="sm" className="font-bold text-[10px] px-1.5 py-0.5">
+                {isAdmin ? 'ADMIN' : 'IA'}
               </Badge>
             </div>
           </Link>
@@ -92,7 +128,7 @@ export default function Sidebar({
           {/* Bouton fermeture sur mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
+            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
             aria-label="Fermer le menu"
           >
             ✕
@@ -104,7 +140,7 @@ export default function Sidebar({
           {/* Groupe Menu Principal */}
           <div>
             <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-              Menu
+              Menu Candidat
             </p>
             <nav className="space-y-1">
               {menuItems.map((item, idx) => {
@@ -131,10 +167,10 @@ export default function Sidebar({
                   </>
                 );
 
-                const commonClasses = `flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-xs transition-all group ${
+                const commonClasses = `flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-xs transition-all group cursor-pointer ${
                   item.active
                     ? 'bg-blue-50/80 text-blue-700 font-bold shadow-2xs'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 font-medium'
                 }`;
 
                 return (
@@ -151,8 +187,48 @@ export default function Sidebar({
             </nav>
           </div>
 
-          {/* Groupe Espace Candidature */}
-          <div>
+          {/* ── Groupe Administration (Exclusif Administrateurs) ── */}
+          {isAdmin && (
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              <div className="flex items-center justify-between px-3 mb-2">
+                <p className="text-[11px] font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  Administration
+                </p>
+                <Badge variant="purple" size="sm" className="text-[9px] font-bold px-1.5 py-0">
+                  ADMIN
+                </Badge>
+              </div>
+              <nav className="space-y-1">
+                {adminItems.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={idx}
+                      to={item.to}
+                      onClick={onClose}
+                      className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-xs transition-all group cursor-pointer ${
+                        item.active
+                          ? 'bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold shadow-2xs'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon
+                          className={`w-5 h-5 transition-colors ${
+                            item.active ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-slate-700'
+                          }`}
+                        />
+                        <span className="font-semibold text-xs tracking-tight">{item.label}</span>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
+
+          {/* Groupe Compte & Paramètres */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80">
             <p className="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
               Compte & Paramètres
             </p>
@@ -164,10 +240,10 @@ export default function Sidebar({
                     key={idx}
                     to={item.to}
                     onClick={onClose}
-                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all group ${
+                    className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all group cursor-pointer ${
                       item.active
                         ? 'bg-blue-50/80 text-blue-700 font-bold shadow-2xs'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 font-medium'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -187,7 +263,7 @@ export default function Sidebar({
               <span className="text-xs font-bold text-blue-950">Assistant ATS Pro</span>
             </div>
             <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
-              Analysez jusqu’à 10 CV par jour et optimisez vos chances d'entretien.
+              Analysez vos CV et maximisez vos chances d'entretien.
             </p>
             <Link
               to="/upload"

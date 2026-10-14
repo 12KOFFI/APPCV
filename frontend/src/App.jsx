@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+﻿import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AuthProvider from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -11,6 +12,12 @@ import AnalysePage from './pages/AnalysePage';
 import HistoriquePage from './pages/HistoriquePage';
 import ProfilePage from './pages/ProfilePage';
 import MesCvsPage from './pages/MesCvsPage';
+
+// Pages Espace Administration
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminCvsPage from './pages/admin/AdminCvsPage';
+import AdminSystemPage from './pages/admin/AdminSystemPage';
 
 function App() {
   return (
@@ -29,7 +36,7 @@ function App() {
             {/* Route d'upload publique (accessible aux visiteurs et aux connectés) */}
             <Route path="/upload" element={<UploadPage />} />
 
-            {/* Routes protégées : ProtectedRoute vérifie le JWT */}
+            {/* Routes protégées candidat : ProtectedRoute vérifie le JWT */}
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/mes-cvs" element={<MesCvsPage />} />
@@ -40,7 +47,17 @@ function App() {
               <Route path="/cv/:id/historique" element={<HistoriquePage />} />
             </Route>
 
-            {/* Toute URL inconnue → redirige vers l'accueil */}
+            {/* Routes réservées aux administrateurs (ROLE_ADMIN obligatoire) */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
+              <Route path="/admin/utilisateurs" element={<Navigate to="/admin/users" replace />} />
+              <Route path="/admin/cvs" element={<AdminCvsPage />} />
+              <Route path="/admin/system" element={<AdminSystemPage />} />
+            </Route>
+
+            {/* Toute URL inconnue ── redirige vers l'accueil */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

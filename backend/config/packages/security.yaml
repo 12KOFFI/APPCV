@@ -34,6 +34,7 @@ security:
         - { path: ^/api/inscription, roles: PUBLIC_ACCESS }
         - { path: ^/api/sante, roles: PUBLIC_ACCESS }
         - { path: ^/api/cv$, methods: [POST], roles: PUBLIC_ACCESS }
+        - { path: ^/api/admin, roles: ROLE_ADMIN }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

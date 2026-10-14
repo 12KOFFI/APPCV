@@ -34,6 +34,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $actif = true;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $creeLe = null;
+
+    public function __construct()
+    {
+        $this->creeLe = new \DateTimeImmutable();
+        $this->actif = true;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -117,6 +129,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
+
+        return $this;
+    }
+
+    public function isActif(): bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): static
+    {
+        $this->actif = $actif;
+
+        return $this;
+    }
+
+    public function getCreeLe(): ?\DateTimeImmutable
+    {
+        return $this->creeLe;
+    }
+
+    public function setCreeLe(?\DateTimeImmutable $creeLe): static
+    {
+        $this->creeLe = $creeLe;
 
         return $this;
     }
