@@ -11,8 +11,11 @@ export default function TurnstileWidget({ onVerify }) {
     onVerifyRef.current = onVerify;
   }, [onVerify]);
 
-  // Clé publique Cloudflare (clé officielle de test Cloudflare '1x00000000000000000000AA' par défaut)
-  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+  // Clé publique Cloudflare (supporte TURNSTILE_SITE_KEY ou VITE_TURNSTILE_SITE_KEY, test officiel par défaut)
+  const siteKey =
+    import.meta.env.TURNSTILE_SITE_KEY ||
+    import.meta.env.VITE_TURNSTILE_SITE_KEY ||
+    '1x00000000000000000000AA';
 
   useEffect(() => {
     let interval = null;
