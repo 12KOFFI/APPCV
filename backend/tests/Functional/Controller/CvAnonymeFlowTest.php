@@ -144,7 +144,7 @@ class CvAnonymeFlowTest extends WebTestCase
         }
     }
 
-    public function testRateLimiterBloqueApresTroisUploads(): void
+    public function testPlusieursUploadsSansBlocageDeLimite(): void
     {
         $client = static::createClient();
         $ip = sprintf('10.%d.%d.%d', mt_rand(1, 200), mt_rand(1, 200), mt_rand(1, 200));
@@ -153,7 +153,7 @@ class CvAnonymeFlowTest extends WebTestCase
         $this->creerFichierPdfValide($tempPdf);
 
         try {
-            for ($i = 1; $i <= 3; $i++) {
+            for ($i = 1; $i <= 4; $i++) {
                 $copyPdf = tempnam(sys_get_temp_dir(), 'test_rate_c_') . '.pdf';
                 copy($tempPdf, $copyPdf);
                 $uploadedFile = new UploadedFile($copyPdf, "cv_$i.pdf", 'application/pdf', null, true);
@@ -164,23 +164,8 @@ class CvAnonymeFlowTest extends WebTestCase
                     ['cv' => $uploadedFile],
                     ['REMOTE_ADDR' => $ip]
                 );
-                $this->assertResponseStatusCodeSame(201, "L'upload $i doit être accepté");
+                $this->assertResponseStatusCodeSame(201, "L'upload $i doit être accepté sans blocage de rate limiter.");
             }
-
-            // 4ème upload avec la même IP -> 429 Too Many Requests
-            $copyPdf4 = tempnam(sys_get_temp_dir(), 'test_rate_c_') . '.pdf';
-            copy($tempPdf, $copyPdf4);
-            $uploadedFile4 = new UploadedFile($copyPdf4, 'cv_4.pdf', 'application/pdf', null, true);
-            $client->request(
-                'POST',
-                '/api/cv',
-                [],
-                ['cv' => $uploadedFile4],
-                ['REMOTE_ADDR' => $ip]
-            );
-            $this->assertResponseStatusCodeSame(429, "Le 4ème upload doit être bloqué par le rate-limiter.");
-            $data = json_decode($client->getResponse()->getContent(), true);
-            $this->assertStringContainsString('Limite de requêtes atteinte', $data['erreur']);
         } finally {
             if (file_exists($tempPdf)) {
                 @unlink($tempPdf);

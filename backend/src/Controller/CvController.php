@@ -14,7 +14,6 @@ use App\Service\TurnstileVerifierService;
 use App\Message\AnalyserCvMessage;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +22,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapUploadedFile;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,8 +30,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class CvController extends AbstractController
 {
     public function __construct(
-        #[Autowire(service: 'limiter.cv_anonymous_upload')]
-        private readonly RateLimiterFactory $anonymousUploadLimiter,
         private readonly TurnstileVerifierService $turnstileVerifier,
     ) {}
     #[Route('/api/cv', name: 'api_cv_liste', methods: ['GET'])]
@@ -176,20 +172,9 @@ final class CvController extends AbstractController
         EntityManagerInterface $em,
         MessageBusInterface $bus,
     ): JsonResponse {
-        // 1. Si utilisateur anonyme : Rate limiting (3 req/h/IP)
+        // 1. Si utilisateur anonyme : Validation Turnstile anti-bot
         if ($user === null) {
             $clientIp = $request->getClientIp() ?? '127.0.0.1';
-            $limiter = $this->anonymousUploadLimiter->create($clientIp);
-            $limit = $limiter->consume(1);
-            if (!$limit->isAccepted()) {
-                $retryAfter = $limit->getRetryAfter();
-                $attenteMinutes = $retryAfter ? (int) ceil(($retryAfter->getTimestamp() - time()) / 60) : 60;
-                return $this->json([
-                    'erreur' => sprintf('Limite de requêtes atteinte (3 CV par heure). Veuillez réessayer dans %d minute(s) ou connectez-vous.', max(1, $attenteMinutes)),
-                ], Response::HTTP_TOO_MANY_REQUESTS);
-            }
-
-            // 2. Validation Turnstile anti-bot
             $turnstileToken = $request->headers->get('cf-turnstile-response')
                 ?? $request->request->get('cf-turnstile-response')
                 ?? $request->request->get('turnstileToken');
