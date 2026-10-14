@@ -71,18 +71,18 @@ export default function Sidebar({
 
       {/* Conteneur principal de la Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 z-50 w-72 h-screen shrink-0 bg-white border-r border-slate-200/80 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:sticky top-0 z-50 w-72 h-screen shrink-0 bg-white dark:bg-[#111827] border-r border-slate-200/80 dark:border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* ── 1. En-tête : Logo & Marque ── */}
-        <div className="h-18 px-6 flex items-center justify-between border-b border-slate-100 shrink-0">
+        <div className="h-18 px-6 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 shrink-0">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-800 border border-transparent dark:border-slate-700 flex items-center justify-center text-white shadow-xs group-hover:bg-slate-800 transition-colors">
               <FileTextIcon className="w-5 h-5 text-white" />
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-slate-900 text-xl tracking-tight">APPCV</span>
+              <span className="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight">APPCV</span>
               <Badge variant="blue" size="sm" className="font-bold text-[10px] px-1.5 py-0.5">
                 IA
               </Badge>

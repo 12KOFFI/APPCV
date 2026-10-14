@@ -21,9 +21,28 @@ export default function Header({
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      localStorage.getItem('theme') === 'dark' ||
+      document.documentElement.classList.contains('dark')
+    );
+  });
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
+
+  // Synchronisation initiale du thème au montage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.documentElement.classList.add('dark');
+      setIsDarkMode(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setIsDarkMode(false);
+    }
+  }, []);
 
   // Fermer le dropdown au clic en dehors
   useEffect(() => {
@@ -55,12 +74,19 @@ export default function Header({
   }
 
   function toggleTheme() {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    const nextMode = !isDarkMode;
+    setIsDarkMode(nextMode);
+    if (nextMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }
 
   return (
-    <header className="sticky top-0 z-30 h-18 bg-white border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
+    <header className="sticky top-0 z-30 h-18 bg-white dark:bg-[#111827] border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between transition-colors">
       {/* ── Gauche : Toggle Sidebar + Barre de recherche ── */}
       <div className="flex items-center gap-3 sm:gap-4 flex-1 max-w-xl">
         {/* Bouton pour ouvrir la Sidebar sur mobile et tablette */}
@@ -84,10 +110,10 @@ export default function Header({
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
             placeholder="Rechercher un CV, un poste, une compétence..."
-            className="w-full text-xs text-slate-900 bg-slate-50/70 border border-slate-200 rounded-xl pl-9 pr-14 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all shadow-2xs"
+            className="w-full text-xs text-slate-900 dark:text-white bg-slate-50/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-14 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-400 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-2xs"
           />
           <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] font-semibold text-slate-400 shadow-2xs">
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[10px] font-semibold text-slate-400 shadow-2xs">
               ⌘K
             </kbd>
           </div>
@@ -98,10 +124,13 @@ export default function Header({
       <div className="flex items-center gap-3">
         {/* Bouton Mode Sombre */}
         <button
+          id="theme-toggle-btn"
+          data-testid="theme-toggle"
           type="button"
           onClick={toggleTheme}
-          className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs"
+          className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
           title={isDarkMode ? 'Passer au mode clair' : 'Passer au mode sombre'}
+          aria-label={isDarkMode ? 'Passer au mode clair' : 'Passer au mode sombre'}
         >
           {isDarkMode ? (
             <SunIcon className="w-4 h-4 text-amber-500" />
@@ -117,13 +146,13 @@ export default function Header({
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-2xs group"
+            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all shadow-2xs group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:bg-slate-800 transition-colors">
+            <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-slate-800 border border-transparent dark:border-slate-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs group-hover:bg-slate-800 transition-colors">
               {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
             </div>
             <div className="hidden sm:flex flex-col text-left pr-1 max-w-[140px]">
-              <span className="text-xs font-bold text-slate-900 truncate leading-tight">
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">
                 {user?.email?.split('@')[0] || 'Utilisateur'}
               </span>
               <span className="text-[10px] text-slate-400 leading-tight">Mon Compte</span>
@@ -133,17 +162,17 @@ export default function Header({
 
           {/* Menu flottant */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 fade-in text-left">
-              <div className="px-4 py-2 border-b border-slate-100">
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 fade-in text-left">
+              <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                 <p className="text-[11px] font-semibold text-slate-400">Connecté en tant que</p>
-                <p className="text-xs font-bold text-slate-900 truncate">{user?.email}</p>
+                <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user?.email}</p>
               </div>
 
               <div className="py-1">
                 <Link
                   to="/profil"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+                  className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   <UserIcon className="w-4 h-4 text-slate-400" />
                   <span>Mon Profil & Mot de passe</span>

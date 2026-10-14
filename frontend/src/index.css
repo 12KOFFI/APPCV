@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════
    DESIGN SYSTEM APPCV — INSPIRÉ DU STANDARD SAAS LOOPCV
@@ -161,3 +162,169 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.06), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
   transform: translateY(-2px);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MODE NUIT & SOMBRE TAILADMIN AI (DARK MODE)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0b0f19;
+  color: #cbd5e1;
+}
+
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f8fafc;
+}
+
+/* Toile & Fond principal */
+html.dark .bg-\[\#F9FAFB\] {
+  background-color: #0b0f19 !important;
+}
+
+/* Barres de navigation, en-tête et cartes principales */
+html.dark aside,
+html.dark header,
+html.dark .bg-white {
+  background-color: #111827 !important;
+  border-color: #1f2937 !important;
+}
+
+/* Surélévations et fonds secondaires */
+html.dark .bg-slate-50,
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/70,
+html.dark .bg-slate-100 {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* Teintes colorées en mode sombre (surfaces badges/alertes/insights) */
+html.dark .bg-blue-50,
+html.dark .bg-blue-50\/50,
+html.dark .bg-blue-50\/60,
+html.dark .bg-blue-50\/80,
+html.dark .bg-blue-50\/90 {
+  background-color: rgba(30, 58, 138, 0.28) !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
+}
+
+html.dark .bg-indigo-50,
+html.dark .bg-indigo-50\/50,
+html.dark .bg-indigo-50\/70,
+html.dark .bg-indigo-50\/80 {
+  background-color: rgba(67, 56, 202, 0.28) !important;
+  border-color: rgba(99, 102, 241, 0.35) !important;
+}
+
+html.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.28) !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.28) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+html.dark .bg-red-50 {
+  background-color: rgba(127, 29, 29, 0.28) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+/* Typographie & Contraste */
+html.dark .text-slate-900 {
+  color: #f9fafb !important;
+}
+
+html.dark .text-slate-800,
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-blue-950,
+html.dark .text-indigo-950,
+html.dark .text-indigo-900 {
+  color: #93c5fd !important;
+}
+
+html.dark .text-indigo-700 {
+  color: #c7d2fe !important;
+}
+
+/* Bordures douces */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/80 {
+  border-color: #1f2937 !important;
+}
+
+/* Champs de formulaires, recherche et kbd */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark input::placeholder {
+  color: #64748b !important;
+}
+
+html.dark kbd {
+  background-color: #1e293b !important;
+  color: #94a3b8 !important;
+  border-color: #334155 !important;
+}
+
+/* Survol des lignes et boutons */
+html.dark tr.group:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-100:hover {
+  background-color: #1e293b !important;
+}
+
+html.dark .hover\:text-slate-900:hover,
+html.dark .hover\:text-slate-700:hover {
+  color: #ffffff !important;
+}
+
+/* Menus déroulants et ombres douces */
+html.dark .shadow-xl,
+html.dark .shadow-2xs,
+html.dark .shadow-xs {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Graphiques SVG */
+html.dark line[stroke="#F1F5F9"] {
+  stroke: #1f2937 !important;
+}
+
+html.dark line[stroke="#CBD5E1"] {
+  stroke: #475569 !important;
+}
+
+html.dark .fill-slate-400 {
+  fill: #94a3b8 !important;
+}
+

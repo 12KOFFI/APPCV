@@ -31,7 +31,7 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-slate-700 flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#0B0F19] text-slate-700 dark:text-slate-200 flex flex-col lg:flex-row transition-colors duration-200">
       {/* ── 1. Barre latérale gauche (Sidebar persistante pour tous les écrans connectés) ── */}
       <Sidebar
         isOpen={sidebarOpen}
