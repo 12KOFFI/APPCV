@@ -108,10 +108,10 @@ export default function HomePage() {
           {/* Bouton CTA format rectangulaire noir LoopCV */}
           <div className="flex flex-col items-center justify-center gap-4 mb-8">
             <Link
-              to="/register"
+              to="/upload"
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer group"
             >
-              <span>Commencez dès maintenant</span>
+              <span>Tester mon CV gratuitement</span>
               <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
             </Link>
 
@@ -720,10 +720,10 @@ export default function HomePage() {
             Rejoignez des milliers de candidats qui ont maximisé l'impact de leur CV grâce à l'analyse par intelligence artificielle.
           </p>
           <Link
-            to="/register"
+            to="/upload"
             className="px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer inline-flex items-center gap-2 group"
           >
-            <span>Commencez dès maintenant</span>
+            <span>Tester mon CV gratuitement</span>
             <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
           </Link>
         </div>

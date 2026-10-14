@@ -1,0 +1,195 @@
+<?php
+
+namespace App\Tests\Functional\Controller;
+
+use Dompdf\Dompdf;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+
+class CvAnonymeFlowTest extends WebTestCase
+{
+    private function creerFichierPdfValide(string $chemin): void
+    {
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml('<html><body><h1>Développeur PHP Symfony</h1><p>Expérience professionnelle de 5 ans dans le développement web, formation ingénieur, compétences techniques PHP, Symfony, Docker, contact contact@example.com, réalisation de 12 projets réussis.</p></body></html>');
+        $dompdf->render();
+        file_put_contents($chemin, $dompdf->output());
+    }
+
+    private function creerUtilisateurEtObtenirToken(KernelBrowser $client, string $email): string
+    {
+        $motDePasse = 'PasswordSecret123!';
+
+        // Inscription
+        $client->request(
+            'POST',
+            '/api/inscription',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode(['email' => $email, 'motDePasse' => $motDePasse])
+        );
+
+        // Connexion
+        $client->request(
+            'POST',
+            '/api/connexion',
+            [],
+            [],
+            ['CONTENT_TYPE' => 'application/json'],
+            json_encode(['email' => $email, 'motDePasse' => $motDePasse])
+        );
+
+        $data = json_decode($client->getResponse()->getContent(), true);
+        return $data['token'] ?? '';
+    }
+
+    public function testUploadAnonymeTeaserEtRattachementAtomique(): void
+    {
+        $client = static::createClient();
+
+        $tempPdf = tempnam(sys_get_temp_dir(), 'test_anon_') . '.pdf';
+        $this->creerFichierPdfValide($tempPdf);
+
+        try {
+            $uploadedFile = new UploadedFile($tempPdf, 'cv_visiteur.pdf', 'application/pdf', null, true);
+
+            $uniqueIp = sprintf('192.168.%d.%d', mt_rand(10, 200), mt_rand(10, 200));
+
+            // 1. Upload Anonyme sur /api/cv
+            $client->request(
+                'POST',
+                '/api/cv',
+                ['texteOffre' => 'Recherche Développeur Symfony pour mission 12 mois'],
+                ['cv' => $uploadedFile],
+                ['REMOTE_ADDR' => $uniqueIp]
+            );
+
+            $this->assertResponseStatusCodeSame(201);
+            $data = json_decode($client->getResponse()->getContent(), true);
+
+            // Vérification que le teaser est retourné et pas de données confidentielles
+            $this->assertFalse($data['rattacheAuCompte']);
+            $this->assertSame('cv_visiteur.pdf', $data['nomOriginal']);
+            $this->assertArrayHasKey('teaser', $data);
+            $this->assertArrayHasKey('score', $data['teaser']);
+            $this->assertArrayHasKey('constats', $data['teaser']);
+            $this->assertArrayHasKey('nombreProblemes', $data['teaser']);
+            $this->assertSame('Fichier conservé 48h max sans compte', $data['messageRgpd']);
+            $this->assertArrayNotHasKey('texteExtrait', $data);
+            $this->assertArrayNotHasKey('jetonAcces', $data); // Secret strictly in HttpOnly cookie!
+
+            // Vérification de la présence du cookie HttpOnly cv_claim_token
+            $cookies = $client->getResponse()->headers->getCookies();
+            $claimCookie = null;
+            foreach ($cookies as $c) {
+                if ($c->getName() === 'cv_claim_token') {
+                    $claimCookie = $c;
+                    break;
+                }
+            }
+
+            $this->assertNotNull($claimCookie, 'Le cookie HttpOnly cv_claim_token doit être présent.');
+            $this->assertTrue($claimCookie->isHttpOnly());
+            $this->assertSame('/api', $claimCookie->getPath());
+            $this->assertNotEmpty($claimCookie->getValue());
+
+            $rawClaimToken = $claimCookie->getValue();
+            $cvId = $data['id'];
+
+            // 2. Inscription d'un utilisateur
+            $email = sprintf('visiteur_%s@example.com', bin2hex(random_bytes(6)));
+            $tokenJwt = $this->creerUtilisateurEtObtenirToken($client, $email);
+
+            // 3. Rattachement du CV via POST /api/cv/rattacher avec le cookie HttpOnly
+            $client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(
+                'cv_claim_token',
+                $rawClaimToken,
+                null,
+                '/api'
+            ));
+
+            $client->request(
+                'POST',
+                '/api/cv/rattacher',
+                [],
+                [],
+                ['HTTP_AUTHORIZATION' => 'Bearer ' . $tokenJwt]
+            );
+
+            $this->assertResponseStatusCodeSame(200);
+            $rattacherData = json_decode($client->getResponse()->getContent(), true);
+            $this->assertTrue($rattacherData['succes']);
+            $this->assertSame($cvId, $rattacherData['cvId']);
+            $this->assertArrayHasKey('analyseId', $rattacherData);
+
+            // 4. Tentative de second rattachement (doit échouer car jeton invalidé)
+            $client->getCookieJar()->set(new \Symfony\Component\BrowserKit\Cookie(
+                'cv_claim_token',
+                $rawClaimToken,
+                null,
+                '/api'
+            ));
+
+            $client->request(
+                'POST',
+                '/api/cv/rattacher',
+                [],
+                [],
+                ['HTTP_AUTHORIZATION' => 'Bearer ' . $tokenJwt]
+            );
+
+            $this->assertResponseStatusCodeSame(404);
+        } finally {
+            if (file_exists($tempPdf)) {
+                @unlink($tempPdf);
+            }
+        }
+    }
+
+    public function testRateLimiterBloqueApresTroisUploads(): void
+    {
+        $client = static::createClient();
+        $ip = sprintf('10.%d.%d.%d', mt_rand(1, 200), mt_rand(1, 200), mt_rand(1, 200));
+
+        $tempPdf = tempnam(sys_get_temp_dir(), 'test_rate_') . '.pdf';
+        $this->creerFichierPdfValide($tempPdf);
+
+        try {
+            for ($i = 1; $i <= 3; $i++) {
+                $copyPdf = tempnam(sys_get_temp_dir(), 'test_rate_c_') . '.pdf';
+                copy($tempPdf, $copyPdf);
+                $uploadedFile = new UploadedFile($copyPdf, "cv_$i.pdf", 'application/pdf', null, true);
+                $client->request(
+                    'POST',
+                    '/api/cv',
+                    [],
+                    ['cv' => $uploadedFile],
+                    ['REMOTE_ADDR' => $ip]
+                );
+                $this->assertResponseStatusCodeSame(201, "L'upload $i doit être accepté");
+            }
+
+            // 4ème upload avec la même IP -> 429 Too Many Requests
+            $copyPdf4 = tempnam(sys_get_temp_dir(), 'test_rate_c_') . '.pdf';
+            copy($tempPdf, $copyPdf4);
+            $uploadedFile4 = new UploadedFile($copyPdf4, 'cv_4.pdf', 'application/pdf', null, true);
+            $client->request(
+                'POST',
+                '/api/cv',
+                [],
+                ['cv' => $uploadedFile4],
+                ['REMOTE_ADDR' => $ip]
+            );
+            $this->assertResponseStatusCodeSame(429, "Le 4ème upload doit être bloqué par le rate-limiter.");
+            $data = json_decode($client->getResponse()->getContent(), true);
+            $this->assertStringContainsString('Limite de requêtes atteinte', $data['erreur']);
+        } finally {
+            if (file_exists($tempPdf)) {
+                @unlink($tempPdf);
+            }
+        }
+    }
+}
+

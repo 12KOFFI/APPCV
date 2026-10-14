@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import client from '../api/client';
 import { useAuth } from '../contexts/useAuth';
 import AuthIllustration from '../components/auth/AuthIllustration';
 import {
@@ -22,7 +23,7 @@ export default function RegisterPage() {
   const [succes, setSucces] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
@@ -47,11 +48,28 @@ export default function RegisterPage() {
 
     try {
       await register(email, motDePasse);
-      setSucces('Compte créé avec succès ! Redirection vers la page de connexion...');
-      setTimeout(() => navigate('/login'), 1200);
+      // Connexion automatique immédiate pour récupérer le JWT
+      try {
+        await login(email, motDePasse);
+        // Tentative de rattachement automatique du CV téléversé anonymement
+        try {
+          const claimRes = await client.post('/api/cv/rattacher');
+          if (claimRes.data?.analyseId) {
+            navigate(`/cv/${claimRes.data.analyseId}/analyse`);
+            return;
+          }
+        } catch {
+          // Aucun CV anonyme en attente
+        }
+        navigate('/dashboard');
+        return;
+      } catch {
+        setSucces('Compte créé avec succès ! Redirection vers la connexion...');
+        setTimeout(() => navigate('/login'), 1000);
+      }
     } catch (err) {
       const data = err.response?.data;
-      setErreur(data?.erreur || data?.detail || "Erreur lors de l'inscription.");
+      setErreur(data?.erreur || data?.detail || data?.message || "Erreur lors de l'inscription.");
     } finally {
       setLoading(false);
     }

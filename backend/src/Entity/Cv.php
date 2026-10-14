@@ -8,8 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\DBAL\Types\Types;
 
-
 #[ORM\Entity(repositoryClass: CvRepository::class)]
+#[ORM\Index(name: 'idx_cv_jeton_claim', fields: ['jetonAccesHash', 'jetonExpireLe'])]
+#[ORM\Index(name: 'idx_cv_hash_fichier', fields: ['hashFichier'])]
 class Cv
 {
     #[ORM\Id]
@@ -29,8 +30,27 @@ class Cv
     #[ORM\Column]
     private int $taille;
 
-    #[ORM\Column(length: 64, unique: true)]
-    private string $jetonAcces;
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $jetonAccesHash = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $jetonExpireLe = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $texteOffre = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $hashFichier = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $scoreTeaser = null;
+
+    /** @var list<string>|null */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $constatsTeaser = null;
+
+    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
+    private ?int $nbProblemesTeaser = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
@@ -58,7 +78,6 @@ class Cv
         $this->typeMime = $typeMime;
         $this->taille = $taille;
         $this->proprietaire = $proprietaire;
-        $this->jetonAcces = bin2hex(random_bytes(32));
         $this->creeLe = new \DateTimeImmutable();
         $this->analyses = new ArrayCollection();
     }
@@ -68,7 +87,6 @@ class Cv
     public function getNomFichier(): string { return $this->nomFichier; }
     public function getTypeMime(): string { return $this->typeMime; }
     public function getTaille(): int { return $this->taille; }
-    public function getJetonAcces(): string { return $this->jetonAcces; }
     public function getProprietaire(): ?User { return $this->proprietaire; }
     public function getCreeLe(): \DateTimeImmutable { return $this->creeLe; }
 
@@ -81,7 +99,7 @@ class Cv
         return $this;
     }
 
-        public function getTexteExtrait(): ?string { return $this->texteExtrait; }
+    public function getTexteExtrait(): ?string { return $this->texteExtrait; }
 
     public function setTexteExtrait(?string $texteExtrait): static
     {
@@ -89,4 +107,59 @@ class Cv
         return $this;
     }
 
+    public function getJetonAccesHash(): ?string { return $this->jetonAccesHash; }
+
+    public function setJetonAccesHash(?string $jetonAccesHash): static
+    {
+        $this->jetonAccesHash = $jetonAccesHash;
+        return $this;
+    }
+
+    public function getJetonExpireLe(): ?\DateTimeImmutable { return $this->jetonExpireLe; }
+
+    public function setJetonExpireLe(?\DateTimeImmutable $jetonExpireLe): static
+    {
+        $this->jetonExpireLe = $jetonExpireLe;
+        return $this;
+    }
+
+    public function getTexteOffre(): ?string { return $this->texteOffre; }
+
+    public function setTexteOffre(?string $texteOffre): static
+    {
+        $this->texteOffre = $texteOffre;
+        return $this;
+    }
+
+    public function getHashFichier(): ?string { return $this->hashFichier; }
+
+    public function setHashFichier(?string $hashFichier): static
+    {
+        $this->hashFichier = $hashFichier;
+        return $this;
+    }
+
+    public function getScoreTeaser(): ?int { return $this->scoreTeaser; }
+
+    public function setScoreTeaser(?int $scoreTeaser): static
+    {
+        $this->scoreTeaser = $scoreTeaser;
+        return $this;
+    }
+
+    public function getConstatsTeaser(): ?array { return $this->constatsTeaser; }
+
+    public function setConstatsTeaser(?array $constatsTeaser): static
+    {
+        $this->constatsTeaser = $constatsTeaser;
+        return $this;
+    }
+
+    public function getNbProblemesTeaser(): ?int { return $this->nbProblemesTeaser; }
+
+    public function setNbProblemesTeaser(?int $nbProblemesTeaser): static
+    {
+        $this->nbProblemesTeaser = $nbProblemesTeaser;
+        return $this;
+    }
 }

@@ -9,10 +9,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // La Navbar publique s'affiche uniquement sur l'accueil public ("/")
-  // Les pages connectées héritent de AppLayout (Sidebar + Header TailAdmin)
-  // Les pages login/register ont leur propre écran split-screen
-  if (location.pathname !== '/') {
+  // La Navbar publique s'affiche sur "/" et sur "/upload" pour les visiteurs anonymes
+  if (location.pathname !== '/' && (location.pathname !== '/upload' || user)) {
     return null;
   }
 

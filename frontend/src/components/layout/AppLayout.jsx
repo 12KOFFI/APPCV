@@ -4,7 +4,7 @@ import Sidebar from '../dashboard/Sidebar';
 import Header from '../dashboard/Header';
 import client from '../../api/client';
 
-export default function AppLayout() {
+export default function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cvsCount, setCvsCount] = useState(0);
   const [recherche, setRecherche] = useState('');
@@ -51,7 +51,7 @@ export default function AppLayout() {
 
         {/* Contenu spécifique de la page (Dashboard, Upload, Profil, Analyse, Historique...) */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto fade-in">
-          <Outlet context={{ cvsCount, recherche, setRecherche }} />
+          {children || <Outlet context={{ cvsCount, recherche, setRecherche }} />}
         </main>
       </div>
     </div>

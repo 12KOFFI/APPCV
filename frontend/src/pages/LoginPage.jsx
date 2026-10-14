@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import client from '../api/client';
 import { useAuth } from '../contexts/useAuth';
 import AuthIllustration from '../components/auth/AuthIllustration';
 import {
@@ -27,6 +28,18 @@ export default function LoginPage() {
 
     try {
       await login(email, motDePasse);
+
+      // Rattachement automatique du CV téléversé avant connexion
+      try {
+        const claimRes = await client.post('/api/cv/rattacher');
+        if (claimRes.data?.analyseId) {
+          navigate(`/cv/${claimRes.data.analyseId}/analyse`);
+          return;
+        }
+      } catch {
+        // Aucun CV en attente ou déjà rattaché
+      }
+
       navigate('/dashboard');
     } catch (err) {
       if (err.response?.status === 401 || err.response?.data?.message === 'Invalid credentials.') {

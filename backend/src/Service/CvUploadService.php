@@ -18,18 +18,21 @@ final class CvUploadService
         private readonly string $dossierCv,
     ) {}
 
-    public function enregistrer(UploadedFile $fichier, ?User $proprietaire): Cv
+    public function enregistrer(UploadedFile $fichier, ?User $proprietaire, ?string $texteOffre = null): Cv
     {
         // 1. On lit TOUT avant de déplacer le fichier
         $typeMime = $fichier->getMimeType();
         $taille = $fichier->getSize();
         $nomOriginal = $fichier->getClientOriginalName();
-        $extension = $fichier->guessExtension();
+        $extension = $fichier->guessExtension() ?? 'pdf';
 
         // 2. Nom aléatoire + déplacement dans le dossier privé
         $nomFichier = bin2hex(random_bytes(16)) . '.' . $extension;
         $fichier->move($this->dossierCv, $nomFichier);
         $chemin = $this->dossierCv . '/' . $nomFichier;
+
+        // Calcul du hash SHA-256 du fichier pour cache/anti-doublon
+        $hashFichier = hash_file('sha256', $chemin);
 
         // 3. Extraction du texte. En cas d'échec, on supprime le fichier orphelin
         try {
@@ -44,6 +47,10 @@ final class CvUploadService
         // 4. Enregistrement en base
         $cv = new Cv($nomOriginal, $nomFichier, $typeMime, $taille, $proprietaire);
         $cv->setTexteExtrait($texte);
+        $cv->setHashFichier($hashFichier);
+        if ($texteOffre !== null && trim($texteOffre) !== '') {
+            $cv->setTexteOffre(trim($texteOffre));
+        }
 
         $this->em->persist($cv);
         $this->em->flush();

@@ -4,26 +4,40 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Cv;
+use App\Entity\Analyse;
 use App\Repository\CvRepository;
 use App\Exception\AnalyseIaException;
 use App\Exception\ExtractionImpossibleException;
 use App\Service\CvUploadService;
 use App\Service\AnalyseurCvIa;
+use App\Service\TeaserGeneratorService;
+use App\Service\TurnstileVerifierService;
+use App\Message\AnalyserCvMessage;
 use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapUploadedFile;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
-
 final class CvController extends AbstractController
 {
+    public function __construct(
+        #[Autowire(service: 'limiter.cv_anonymous_upload')]
+        private readonly RateLimiterFactory $anonymousUploadLimiter,
+        private readonly TeaserGeneratorService $teaserGenerator,
+        private readonly TurnstileVerifierService $turnstileVerifier,
+    ) {}
     #[Route('/api/cv', name: 'api_cv_liste', methods: ['GET'])]
     public function lister(
         #[CurrentUser] User $user,
@@ -145,6 +159,7 @@ final class CvController extends AbstractController
 
     #[Route('/api/cv', name: 'api_cv_upload', methods: ['POST'])]
     public function upload(
+        Request $request,
         #[MapUploadedFile([
             new Assert\NotNull(message: 'Aucun fichier reçu (le champ doit s\'appeler "cv").'),
             new Assert\File(
@@ -160,28 +175,206 @@ final class CvController extends AbstractController
         UploadedFile $cv,
         #[CurrentUser] ?User $user,
         CvUploadService $cvUploadService,
+        EntityManagerInterface $em,
+        MessageBusInterface $bus,
     ): JsonResponse {
-        // ⬇️ DÉBUT DU CORPS DE LA MÉTHODE (la partie qui a changé)
+        // 1. Si utilisateur anonyme : Rate limiting (3 req/h/IP)
+        if ($user === null) {
+            $clientIp = $request->getClientIp() ?? '127.0.0.1';
+            $limiter = $this->anonymousUploadLimiter->create($clientIp);
+            $limit = $limiter->consume(1);
+            if (!$limit->isAccepted()) {
+                $retryAfter = $limit->getRetryAfter();
+                $attenteMinutes = $retryAfter ? (int) ceil(($retryAfter->getTimestamp() - time()) / 60) : 60;
+                return $this->json([
+                    'erreur' => sprintf('Limite de requêtes atteinte (3 CV par heure). Veuillez réessayer dans %d minute(s) ou connectez-vous.', max(1, $attenteMinutes)),
+                ], Response::HTTP_TOO_MANY_REQUESTS);
+            }
+
+            // 2. Validation Turnstile anti-bot
+            $turnstileToken = $request->headers->get('cf-turnstile-response')
+                ?? $request->request->get('cf-turnstile-response')
+                ?? $request->request->get('turnstileToken');
+
+            if (!$this->turnstileVerifier->verifier($turnstileToken, $clientIp)) {
+                return $this->json([
+                    'erreur' => 'Validation de sécurité Turnstile échouée. Veuillez recharger la page et réessayer.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        // 3. Récupération du texte d'offre ciblée facultative
+        $texteOffre = $request->request->get('texteOffre');
+        if (is_string($texteOffre)) {
+            $texteOffre = trim($texteOffre);
+            if ($texteOffre === '') {
+                $texteOffre = null;
+            }
+        } else {
+            $texteOffre = null;
+        }
+
+        // 4. Enregistrement physique + extraction texte
         try {
-            $entite = $cvUploadService->enregistrer($cv, $user);
+            $entite = $cvUploadService->enregistrer($cv, $user, $texteOffre);
         } catch (ExtractionImpossibleException $e) {
             return $this->json(['erreur' => $e->getMessage()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $reponse = [
-            'id' => $entite->getId(),
-            'nomOriginal' => $entite->getNomOriginal(),
-            'rattacheAuCompte' => $user !== null,
-            'nombreCaracteres' => mb_strlen($entite->getTexteExtrait()),
-            'apercu' => mb_substr($entite->getTexteExtrait(), 0, 200),
-        ];
+        // 5. Cas utilisateur déjà connecté : lance l'analyse complète directement
+        if ($user !== null) {
+            $analyse = new Analyse($entite, $entite->getTexteOffre());
+            $analyse->setStatut(Analyse::STATUT_EN_ATTENTE);
+            $em->persist($analyse);
+            $em->flush();
 
-        if ($user === null) {
-            $reponse['jetonAcces'] = $entite->getJetonAcces();
+            $bus->dispatch(new AnalyserCvMessage($analyse->getId()));
+
+            return $this->json([
+                'id' => $entite->getId(),
+                'nomOriginal' => $entite->getNomOriginal(),
+                'rattacheAuCompte' => true,
+                'nombreCaracteres' => mb_strlen($entite->getTexteExtrait() ?? ''),
+                'analyseId' => $analyse->getId(),
+                'message' => 'CV enregistré et analyse lancée.',
+            ], Response::HTTP_CREATED);
         }
 
-        return $this->json($reponse, Response::HTTP_CREATED);
-       
+        // 6. Cas visiteur anonyme : génération déterministe locale du TEASER (0 COÛT IA !)
+        $teaser = $this->teaserGenerator->genererTeaser($entite->getTexteExtrait() ?? '', $entite->getTexteOffre());
+        $entite->setScoreTeaser($teaser['score']);
+        $entite->setConstatsTeaser($teaser['constats']);
+        $entite->setNbProblemesTeaser($teaser['nombreProblemes']);
+
+        // Calcul du jeton secret aléatoire (32 octets) + hash SHA-256 en BDD + expiration à NOW + 48h
+        $rawClaimToken = bin2hex(random_bytes(32));
+        $hashToken = hash('sha256', $rawClaimToken);
+        $expiration = (new \DateTimeImmutable())->modify('+48 hours');
+
+        $entite->setJetonAccesHash($hashToken);
+        $entite->setJetonExpireLe($expiration);
+        $em->flush();
+
+        // Pose du Cookie HttpOnly (cv_claim_token = rawToken, Secure, SameSite=Lax, Path=/api)
+        $cookie = Cookie::create(
+            'cv_claim_token',
+            $rawClaimToken,
+            $expiration,
+            '/api',
+            null,
+            true,
+            true,
+            false,
+            Cookie::SAMESITE_LAX
+        );
+
+        // Réponse JSON : UNIQUEMENT les métadonnées du teaser (jamais le rapport complet)
+        $reponse = $this->json([
+            'id' => $entite->getId(),
+            'nomOriginal' => $entite->getNomOriginal(),
+            'taille' => $entite->getTaille(),
+            'rattacheAuCompte' => false,
+            'teaser' => [
+                'score' => $teaser['score'],
+                'constats' => $teaser['constats'],
+                'nombreProblemes' => $teaser['nombreProblemes'],
+            ],
+            'messageRgpd' => 'Fichier conservé 48h max sans compte',
+        ], Response::HTTP_CREATED);
+
+        $reponse->headers->setCookie($cookie);
+
+        return $reponse;
+    }
+
+    #[Route('/api/cv/rattacher', name: 'api_cv_rattacher', methods: ['POST'])]
+    public function rattacher(
+        Request $request,
+        #[CurrentUser] User $user,
+        CvRepository $cvRepository,
+        EntityManagerInterface $em,
+        MessageBusInterface $bus,
+    ): JsonResponse {
+        $rawToken = $request->cookies->get('cv_claim_token');
+
+        if (empty($rawToken)) {
+            return $this->json([
+                'erreur' => 'Aucun jeton de rattachement trouvé dans la session.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $hashToken = hash('sha256', $rawToken);
+        $now = new \DateTimeImmutable();
+
+        // Recherche du CV anonyme éligible (non encore assigné, hash correspondant, non expiré)
+        $cv = $cvRepository->createQueryBuilder('c')
+            ->where('c.proprietaire IS NULL')
+            ->andWhere('c.jetonAccesHash = :hash')
+            ->andWhere('c.jetonExpireLe > :now')
+            ->setParameter('hash', $hashToken)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if (!$cv) {
+            $response = $this->json([
+                'erreur' => 'Ce CV a déjà été rattaché ou le délai de 48h est expiré.',
+            ], Response::HTTP_NOT_FOUND);
+            $response->headers->clearCookie('cv_claim_token', '/api');
+            return $response;
+        }
+
+        $cvId = $cv->getId();
+
+        // UPDATE atomique WHERE proprietaire IS NULL AND jeton_acces_hash = :hash AND jeton_expire_le > NOW()
+        $qb = $em->createQueryBuilder();
+        $rowsAffected = $qb->update(Cv::class, 'c')
+            ->set('c.proprietaire', ':user')
+            ->set('c.jetonAccesHash', ':nullToken')
+            ->set('c.jetonExpireLe', ':nullExpire')
+            ->where('c.id = :cvId')
+            ->andWhere('c.proprietaire IS NULL')
+            ->andWhere('c.jetonAccesHash = :hash')
+            ->andWhere('c.jetonExpireLe > :now')
+            ->setParameter('user', $user)
+            ->setParameter('nullToken', null)
+            ->setParameter('nullExpire', null)
+            ->setParameter('cvId', $cvId)
+            ->setParameter('hash', $hashToken)
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->execute();
+
+        if ($rowsAffected === 0) {
+            $response = $this->json([
+                'erreur' => 'Conflit de rattachement : ce CV est déjà associé à un compte.',
+            ], Response::HTTP_CONFLICT);
+            $response->headers->clearCookie('cv_claim_token', '/api');
+            return $response;
+        }
+
+        // Rafraîchir l'entité CV
+        $em->refresh($cv);
+
+        // Création de l'entité Analyse complète + Dispatch Messenger (Modèle IA puissant)
+        $analyse = new Analyse($cv, $cv->getTexteOffre());
+        $analyse->setStatut(Analyse::STATUT_EN_ATTENTE);
+        $em->persist($analyse);
+        $em->flush();
+
+        $bus->dispatch(new AnalyserCvMessage($analyse->getId()));
+
+        $response = $this->json([
+            'succes' => true,
+            'message' => 'CV rattaché avec succès. L\'analyse complète a été lancée.',
+            'cvId' => $cv->getId(),
+            'analyseId' => $analyse->getId(),
+        ], Response::HTTP_OK);
+
+        // Invalidation immédiate en session : suppression du cookie HttpOnly
+        $response->headers->clearCookie('cv_claim_token', '/api');
+
+        return $response;
     }
 
     #[Route('/api/cv/{id}/analyse', name: 'api_cv_analyse', methods: ['POST'], requirements: ['id' => '\d+'])]
