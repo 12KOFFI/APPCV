@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import client from '../../api/client';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -30,8 +31,7 @@ export default function AdminUsersPage() {
   const [modalCreation, setModalCreation] = useState(false);
   const [modalEdition, setModalEdition] = useState(null); // user object to edit
   const [modalSuppression, setModalSuppression] = useState(null); // user object to delete
-  const [modalDetail, setModalDetail] = useState(null); // user detail with CVs
-
+  
   // Form states for creation
   const [nouveauEmail, setNouveauEmail] = useState('');
   const [nouveauMdp, setNouveauMdp] = useState('');
@@ -156,18 +156,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function ouvrirDetail(user) {
-    setModalDetail({ user, cvs: [], chargement: true });
-    try {
-      const res = await client.get(`/api/admin/users/${user.id}`);
-      setModalDetail({ user: res.data, cvs: res.data.cvs || [], chargement: false });
-    } catch {
-      setModalDetail(null);
-      setErreur('Impossible de charger le détail de cet utilisateur.');
-    }
-  }
-
-  function handleExportUsers() {
+    function handleExportUsers() {
     const token = localStorage.getItem('token');
     window.open(`${client.defaults.baseURL || ''}/api/admin/export/users?token=${token}`, '_blank');
   }
@@ -339,14 +328,13 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => ouvrirDetail(u)}
-                            className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 transition cursor-pointer"
-                            title="Voir ses CVs"
+                          <Link
+                            to={`/admin/users/${u.id}`}
+                            className="px-2.5 py-1 rounded-md text-[11px] font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 transition cursor-pointer inline-flex items-center"
+                            title="Consulter la fiche détaillée & analyses ATS"
                           >
                             Détails
-                          </button>
+                          </Link>
                           <button
                             type="button"
                             onClick={() => ouvrirEdition(u)}
@@ -648,78 +636,6 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* ── Modal Détails & CVs de l'Utilisateur ── */}
-      {modalDetail && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-2xl w-full p-6 space-y-5 fade-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold">
-                  {modalDetail.user?.email?.substring(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-                    {modalDetail.user?.email}
-                  </h3>
-                  <span className="text-[11px] text-slate-400">
-                    ID #{modalDetail.user?.id} • Rôle : {modalDetail.user?.role}
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setModalDetail(null)}
-                className="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <h4 className="font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider text-[11px]">
-                Documents CV déposés ({modalDetail.cvs?.length || 0})
-              </h4>
-
-              {modalDetail.cvs?.length === 0 ? (
-                <p className="text-slate-400 py-4 text-center">Aucun CV déposé par cet utilisateur.</p>
-              ) : (
-                <div className="space-y-2">
-                  {modalDetail.cvs?.map((cv) => (
-                    <div
-                      key={cv.id}
-                      className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <FileTextIcon className="w-5 h-5 text-blue-600 shrink-0" />
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white">{cv.nomOriginal}</p>
-                          <p className="text-[11px] text-slate-400">
-                            {Math.round(cv.taille / 1024)} Ko • Déposé le {new Date(cv.creeLe).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {cv.note !== null ? (
-                          <Badge variant="success" size="sm">Score {cv.note}/100</Badge>
-                        ) : (
-                          <Badge variant="neutral" size="sm">{cv.statut}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Button variant="secondary" size="sm" onClick={() => setModalDetail(null)}>
-                Fermer
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
   );
 }

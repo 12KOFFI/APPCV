@@ -313,12 +313,23 @@ final class AdminController extends AbstractController
                 'id' => $cv->getId(),
                 'nomOriginal' => $cv->getNomOriginal(),
                 'taille' => $cv->getTaille(),
+                'typeMime' => $cv->getTypeMime(),
+                'texteOffre' => $cv->getTexteOffre(),
                 'creeLe' => $cv->getCreeLe()->format('c'),
                 'note' => $derniereAnalyse?->getNote(),
                 'statut' => $derniereAnalyse?->getStatut() ?? 'NON_ANALYSE',
                 'derniereAnalyseId' => $derniereAnalyse?->getId(),
             ];
         }
+
+        $qbNote = $this->analyseRepository->createQueryBuilder('a')
+            ->select('AVG(a.note)')
+            ->join('a.cv', 'c')
+            ->where('c.proprietaire = :u')
+            ->andWhere('a.statut = :st AND a.note IS NOT NULL')
+            ->setParameter('u', $user)
+            ->setParameter('st', Analyse::STATUT_TERMINE);
+        $noteMoyenne = $qbNote->getQuery()->getSingleScalarResult();
 
         return $this->json([
             'id' => $user->getId(),
@@ -327,6 +338,8 @@ final class AdminController extends AbstractController
             'roles' => $user->getRoles(),
             'actif' => $user->isActif(),
             'creeLe' => $user->getCreeLe()?->format('c'),
+            'scoreMoyen' => $noteMoyenne !== null ? (int) round((float) $noteMoyenne) : null,
+            'nombreCvs' => count($cvs),
             'cvs' => $cvsData,
         ]);
     }

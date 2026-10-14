@@ -341,48 +341,48 @@ export default function AdminDashboardPage() {
       {/* ── Section Raccourcis & Actions Administrateur ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Raccourci Gestion Utilisateurs */}
-        <Card className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white flex flex-col justify-between">
+        <Card className="p-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
           <div>
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <UserIcon className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center mb-3">
+              <UserIcon className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-base mb-1">Gestion des Comptes</h3>
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base mb-1.5">Gestion des Comptes</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
               Consultez les utilisateurs, créez des comptes, modifiez les privilèges ou réinitialisez les accès.
             </p>
           </div>
           <Link to="/admin/users">
-            <Button variant="secondary" size="sm" className="w-full justify-center bg-white text-slate-900 font-bold hover:bg-slate-100">
+            <Button variant="primary" size="sm" className="w-full justify-center">
               Ouvrir l'annuaire ({utilisateurs?.total ?? 0})
               <ArrowRightIcon className="w-3.5 h-3.5 ml-1.5" />
             </Button>
           </Link>
         </Card>
 
-        {/* Raccourci Surveillance CVs & Analyses */}
-        <Card className="p-5 bg-gradient-to-br from-indigo-900 to-purple-900 text-white flex flex-col justify-between">
+        {/* Raccourci Audits & Diagnostics ATS */}
+        <Card className="p-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
           <div>
-            <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <FileTextIcon className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center mb-3">
+              <FileTextIcon className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-base mb-1">Audits & Analyses IA</h3>
-            <p className="text-xs text-indigo-200 leading-relaxed mb-4">
-              Explorez les CV téléversés, visualisez les rapports ATS complets et relancez les analyses en 1 clic.
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base mb-1.5">Audits & Analyses IA</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+              Consultez les scores ATS, diagnostics détaillés et relancez les audits directement depuis les fiches candidats.
             </p>
           </div>
-          <Link to="/admin/cvs">
-            <Button variant="secondary" size="sm" className="w-full justify-center bg-white text-slate-900 font-bold hover:bg-slate-100">
-              Explorer les CV ({cvs?.total ?? 0})
+          <Link to="/admin/users">
+            <Button variant="secondary" size="sm" className="w-full justify-center bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 font-bold">
+              Consulter les diagnostics ({cvs?.total ?? 0} CV)
               <ArrowRightIcon className="w-3.5 h-3.5 ml-1.5" />
             </Button>
           </Link>
         </Card>
 
         {/* Actions Rapides Système & Purge RGPD */}
-        <Card className="p-5 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 flex flex-col justify-between">
+        <Card className="p-5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-900/50 flex items-center justify-center">
                 <ShieldCheckIcon className="w-5 h-5" />
               </div>
               {cvs?.orphelinsExpires > 0 && (
@@ -391,16 +391,16 @@ export default function AdminDashboardPage() {
                 </Badge>
               )}
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-base mb-1">Maintenance & RGPD</h3>
-            <p className="text-xs text-slate-500 leading-relaxed mb-4">
-              Stockage total : <strong>{Math.round((cvs?.stockageOctets || 0) / (1024 * 1024))} Mo</strong>. Purgez les CV anonymes expirés ou exportez les données.
+            <h3 className="font-extrabold text-slate-900 dark:text-white text-base mb-1.5">Maintenance & RGPD</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+              Stockage total : <strong className="text-slate-900 dark:text-white font-semibold">{Math.round((cvs?.stockageOctets || 0) / (1024 * 1024))} Mo</strong>. Purgez les CV anonymes expirés ou configurez le système.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
               variant="danger"
               size="sm"
-              className="flex-1 text-xs"
+              className="flex-1 text-xs justify-center"
               onClick={handlePurgeRapide}
               loading={purgeEnCours}
               disabled={purgeEnCours || (cvs?.orphelinsExpires === 0)}
@@ -408,7 +408,7 @@ export default function AdminDashboardPage() {
               Purger orphelins
             </Button>
             <Link to="/admin/system">
-              <Button variant="secondary" size="sm" className="text-xs">
+              <Button variant="secondary" size="sm" className="text-xs font-semibold">
                 Système
               </Button>
             </Link>

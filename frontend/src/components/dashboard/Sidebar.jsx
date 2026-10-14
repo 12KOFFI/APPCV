@@ -65,12 +65,7 @@ export default function Sidebar({
       icon: UserIcon,
       active: location.pathname.startsWith('/admin/users'),
     },
-    {
-      label: 'CVs & Analyses',
-      to: '/admin/cvs',
-      icon: FileTextIcon,
-      active: location.pathname.startsWith('/admin/cvs'),
-    },
+
     {
       label: 'Système & RGPD',
       to: '/admin/system',

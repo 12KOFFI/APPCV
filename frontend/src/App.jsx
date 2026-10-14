@@ -16,7 +16,7 @@ import MesCvsPage from './pages/MesCvsPage';
 // Pages Espace Administration
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
-import AdminCvsPage from './pages/admin/AdminCvsPage';
+import AdminUserDetailPage from './pages/admin/AdminUserDetailPage';
 import AdminSystemPage from './pages/admin/AdminSystemPage';
 
 function App() {
@@ -53,7 +53,8 @@ function App() {
               <Route path="/admin/dashboard" element={<Navigate to="/admin" replace />} />
               <Route path="/admin/users" element={<AdminUsersPage />} />
               <Route path="/admin/utilisateurs" element={<Navigate to="/admin/users" replace />} />
-              <Route path="/admin/cvs" element={<AdminCvsPage />} />
+              <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
+              <Route path="/admin/cvs" element={<Navigate to="/admin/users" replace />} />
               <Route path="/admin/system" element={<AdminSystemPage />} />
             </Route>
 
