@@ -557,12 +557,20 @@ final class AdminController extends AbstractController
             return $this->json(['erreur' => 'CV introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
-        $chemin = $this->dossierCv . '/' . $cv->getNomFichier();
-        if (!file_exists($chemin)) {
+        // Sécurisation anti-path traversal
+        $nomFichierSecurise = basename($cv->getNomFichier());
+        $chemin = $this->dossierCv . '/' . $nomFichierSecurise;
+        $realDossier = realpath($this->dossierCv);
+        $realChemin = realpath($chemin);
+
+        if (!$realChemin || !$realDossier || !str_starts_with($realChemin, $realDossier) || !is_file($realChemin)) {
             return $this->json(['erreur' => 'Le fichier physique est introuvable sur le disque.'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->file($chemin, $cv->getNomOriginal(), ResponseHeaderBag::DISPOSITION_INLINE);
+        // Nettoyage du nom pour éviter CRLF injection ou caractères malveillants
+        $nomOriginal = preg_replace('/[^\w\.\-\s]/u', '_', basename($cv->getNomOriginal() ?: 'cv.pdf'));
+
+        return $this->file($realChemin, $nomOriginal, ResponseHeaderBag::DISPOSITION_ATTACHMENT);
     }
 
     // P1: Relance d'analyse IA en 1 clic

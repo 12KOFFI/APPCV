@@ -115,9 +115,21 @@ export default function AdminUserDetailPage() {
     }
   }
 
-  function handleTelechargerFichier(cvId) {
-    const token = localStorage.getItem('token');
-    window.open(`${client.defaults.baseURL || ''}/api/admin/cvs/${cvId}/telecharger?token=${token}`, '_blank');
+  async function handleTelechargerFichier(cvId, nomFichier = 'cv.pdf') {
+    try {
+      const res = await client.get(`/api/admin/cvs/${cvId}/telecharger`, { responseType: 'blob' });
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', nomFichier);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErreur(err.response?.data?.erreur || 'Erreur lors du téléchargement du fichier.');
+    }
   }
 
   async function handleConfirmerSupprimerCv() {
@@ -502,7 +514,7 @@ export default function AdminUserDetailPage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => handleTelechargerFichier(analyseData.cv?.id)}
+                      onClick={() => handleTelechargerFichier(analyseData.cv?.id, analyseData.cv?.nomOriginal || "cv.pdf")}
                       className="cursor-pointer"
                     >
                       <DownloadIcon className="w-3.5 h-3.5 mr-1" />

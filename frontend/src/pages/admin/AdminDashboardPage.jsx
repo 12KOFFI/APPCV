@@ -61,14 +61,38 @@ export default function AdminDashboardPage() {
     }
   }
 
-  function handleExportUsers() {
-    const token = localStorage.getItem('token');
-    window.open(`${client.defaults.baseURL || ''}/api/admin/export/users?token=${token}`, '_blank');
+  async function handleExportUsers() {
+    try {
+      const res = await client.get('/api/admin/export/users', { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `utilisateurs-appcv-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErreur('Impossible d\'exporter les utilisateurs.');
+    }
   }
 
-  function handleExportCvs() {
-    const token = localStorage.getItem('token');
-    window.open(`${client.defaults.baseURL || ''}/api/admin/export/cvs?token=${token}`, '_blank');
+  async function handleExportCvs() {
+    try {
+      const res = await client.get('/api/admin/export/cvs', { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `rapport-cvs-appcv-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErreur('Impossible d\'exporter les CVs.');
+    }
   }
 
   if (chargement) {

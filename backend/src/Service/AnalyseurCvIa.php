@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Dto\AnalyseCvDto;
+use Psr\Log\LoggerInterface;
 use App\Exception\AnalyseIaException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;

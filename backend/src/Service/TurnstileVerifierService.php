@@ -22,8 +22,8 @@ final class TurnstileVerifierService
             return true;
         }
 
-        // Jeton de test officiel Cloudflare (passe toujours)
-        if ($token === '1x00000000000000000000AA' || $token === 'test-token') {
+        // Jeton de test officiel Cloudflare : uniquement hors production (dev / test)
+        if ($this->environment !== 'prod' && ($token === '1x00000000000000000000AA' || $token === 'test-token')) {
             return true;
         }
 

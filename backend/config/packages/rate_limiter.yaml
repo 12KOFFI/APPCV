@@ -2,5 +2,9 @@ framework:
     rate_limiter:
         cv_anonymous_upload:
             policy: 'sliding_window'
-            limit: 3
+            limit: 5
+            interval: '60 minutes'
+        api_inscription:
+            policy: 'sliding_window'
+            limit: 5
             interval: '60 minutes'
