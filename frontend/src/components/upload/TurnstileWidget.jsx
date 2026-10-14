@@ -11,11 +11,11 @@ export default function TurnstileWidget({ onVerify }) {
     onVerifyRef.current = onVerify;
   }, [onVerify]);
 
-  // Clé publique Cloudflare (supporte TURNSTILE_SITE_KEY ou VITE_TURNSTILE_SITE_KEY, test officiel par défaut)
+  // Clé publique Cloudflare (sitekey officielle du projet appcvats2.vercel.app)
   const siteKey =
     import.meta.env.TURNSTILE_SITE_KEY ||
     import.meta.env.VITE_TURNSTILE_SITE_KEY ||
-    '1x00000000000000000000AA';
+    '0x4AAAAAAFXCh3ApGRuNHXBX';
 
   useEffect(() => {
     let interval = null;

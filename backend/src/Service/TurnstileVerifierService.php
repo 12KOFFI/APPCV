@@ -7,6 +7,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class TurnstileVerifierService
 {
+    private ?string $dernierCodeErreur = null;
+
     public function __construct(
         private readonly ?HttpClientInterface $httpClient = null,
         #[Autowire('%env(default::TURNSTILE_SECRET_KEY)%')]
@@ -15,8 +17,15 @@ final class TurnstileVerifierService
         private readonly string $environment = 'dev',
     ) {}
 
+    public function getDernierCodeErreur(): ?string
+    {
+        return $this->dernierCodeErreur;
+    }
+
     public function verifier(?string $token, ?string $clientIp = null): bool
     {
+        $this->dernierCodeErreur = null;
+
         // 1. Environnement de test (CI) : validation automatique
         if ($this->environment === 'test') {
             return true;
@@ -35,24 +44,33 @@ final class TurnstileVerifierService
 
         // 4. Si une clé secrète réelle est configurée mais aucun jeton n'est envoyé : refus
         if (empty($token) || $this->httpClient === null) {
+            $this->dernierCodeErreur = 'jeton-manquant';
             return false;
         }
 
         // 5. Vérification auprès de l'API Cloudflare Turnstile
+        // Note : on n'envoie pas remoteip pour éviter les faux rejets liés aux proxies et IPv6 sur LiteSpeed
         try {
             $response = $this->httpClient->request('POST', 'https://challenges.cloudflare.com/turnstile/v0/siteverify', [
                 'body' => [
                     'secret' => $this->secretKey,
                     'response' => $token,
-                    'remoteip' => $clientIp,
                 ],
                 'timeout' => 4.0,
             ]);
 
             $data = $response->toArray();
-            return (bool) ($data['success'] ?? false);
-        } catch (\Throwable) {
+            $succes = (bool) ($data['success'] ?? false);
+
+            if (!$succes) {
+                $codes = !empty($data['error-codes']) ? implode(', ', (array) $data['error-codes']) : 'refus-inconnu';
+                $this->dernierCodeErreur = $codes;
+            }
+
+            return $succes;
+        } catch (\Throwable $e) {
             // En cas d'indisponibilité réseau temporaire de Cloudflare, ne pas bloquer les utilisateurs légitimes
+            $this->dernierCodeErreur = 'exception-reseau';
             return true;
         }
     }

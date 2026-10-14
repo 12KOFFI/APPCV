@@ -190,8 +190,9 @@ final class CvController extends AbstractController
                 ?? $request->request->get('turnstileToken');
 
             if (!$this->turnstileVerifier->verifier($turnstileToken, $clientIp)) {
+                $detail = $this->turnstileVerifier->getDernierCodeErreur();
                 return $this->json([
-                    'erreur' => 'Validation de sécurité Turnstile échouée. Veuillez recharger la page et réessayer.',
+                    'erreur' => 'Validation de sécurité Turnstile échouée' . ($detail ? ' (' . $detail . ')' : '') . '. Veuillez recharger la page et réessayer.',
                 ], Response::HTTP_BAD_REQUEST);
             }
         }
