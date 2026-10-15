@@ -169,7 +169,7 @@ export default function Navbar() {
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5">
+            <div className="hidden sm:flex items-center gap-2.5">
               <Link to="/login">
                 <button
                   type="button"
@@ -193,7 +193,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+            className="md:hidden w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-100 active:bg-slate-200 transition-all cursor-pointer"
             aria-label="Menu"
           >
             {mobileMenuOpen ? (
@@ -211,7 +211,7 @@ export default function Navbar() {
 
       {/* Menu mobile déroulant */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-100 bg-white/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-3 shadow-lg fade-in">
+        <div className="md:hidden border-t border-slate-100 bg-white/98 backdrop-blur-lg px-4 pt-4 pb-6 space-y-4 shadow-xl fade-in animate-in slide-in-from-top-2 duration-200">
           {user ? (
             <div className="flex flex-col space-y-2 text-sm font-semibold text-slate-700">
               <Link
@@ -259,18 +259,18 @@ export default function Navbar() {
               >
                 FAQ
               </a>
-              <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
+              <div className="pt-3 border-t border-slate-100 flex flex-col gap-2.5">
                 <Link
                   to="/login"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg text-xs font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200"
+                  className="w-full min-h-[46px] flex items-center justify-center py-2.5 px-4 rounded-xl text-sm font-semibold text-slate-800 bg-slate-100 hover:bg-slate-200 active:bg-slate-300 transition"
                 >
                   Connexion
                 </Link>
                 <Link
                   to="/register"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 rounded-lg text-xs font-bold text-white bg-slate-900 hover:bg-black"
+                  className="w-full min-h-[48px] flex items-center justify-center py-2.5 px-4 rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-black active:bg-slate-800 shadow-md transition"
                 >
                   Commencer gratuitement
                 </Link>

@@ -73,7 +73,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2 bg-[#F9FAFB] fade-in">
       {/* ── Colonne Gauche : Formulaire ── */}
-      <div className="flex flex-col justify-between px-6 py-8 sm:px-12 lg:px-16 xl:px-24 min-h-screen">
+      <div className="flex flex-col justify-between px-4 py-6 sm:px-12 lg:px-16 xl:px-24 min-h-screen">
         {/* Logo APPCV et Bouton retour vers l'accueil */}
         <div className="pt-2 flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-2.5 group">

@@ -292,7 +292,7 @@ export default function UploadPage() {
             </div>
           )}
 
-          <Card className="p-6 sm:p-8 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xl space-y-6">
+          <Card className="p-4 sm:p-8 bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xl space-y-5 sm:space-y-6">
             <form onSubmit={handleLancerAnalyseBrouillon} className="space-y-6">
               {/* Carte récapitulative du CV prérempli */}
               <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 space-y-3">
@@ -346,7 +346,7 @@ export default function UploadPage() {
                   onChange={(e) => setTexteOffre(e.target.value)}
                   disabled={chargementAnalyse}
                   placeholder="Collez ici l'intitulé ou le texte de l'offre visée pour vérifier la pertinence de vos mots-clés..."
-                  className="w-full text-xs p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all resize-y"
+                  className="w-full text-sm sm:text-xs p-3 sm:p-3.5 rounded-xl min-h-[90px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white transition-all resize-y"
                 />
               </div>
 
@@ -472,9 +472,9 @@ export default function UploadPage() {
               )}
 
               {/* 4. Boutons d'action */}
-              <div className="flex items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <Link to={user ? '/dashboard' : '/'}>
-                  <Button variant="ghost" size="md">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <Link to={user ? '/dashboard' : '/'} className="w-full sm:w-auto text-center">
+                  <Button variant="ghost" size="md" className="w-full sm:w-auto min-h-[44px]">
                     Annuler
                   </Button>
                 </Link>
@@ -485,7 +485,7 @@ export default function UploadPage() {
                   loading={chargement}
                   variant="primary"
                   size="md"
-                  className="px-6 py-2.5 font-bold shadow-md hover:shadow-lg transition-all"
+                  className="w-full sm:w-auto px-6 py-3 min-h-[48px] font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center"
                 >
                   <SparklesIcon className="w-4 h-4 mr-1.5" />
                   <span>Analyser par IA</span>

@@ -94,7 +94,7 @@ export default function HomePage() {
           </div>
 
           {/* Triangle de points turquoise à gauche */}
-          <div className="absolute top-44 left-4 sm:left-16">
+          <div className="hidden md:block absolute top-44 left-4 sm:left-16">
             <GreenDotMatrixTriangle className="w-12 h-12 sm:w-16 sm:h-16 opacity-85" />
           </div>
 
@@ -109,7 +109,7 @@ export default function HomePage() {
           </div>
 
           {/* Ondulations bleues à droite */}
-          <div className="absolute top-72 right-4 sm:right-16">
+          <div className="hidden md:block absolute top-72 right-4 sm;right-16">
             <BlueMultiWaves className="w-10 h-10 sm:w-12 sm:h-12 opacity-80" />
           </div>
 
@@ -122,12 +122,12 @@ export default function HomePage() {
         {/* ── Contenu central du Hero ── */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           {/* Titre principal centré et percutant */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.08] mb-6">
+          <h1 className="text-3xl sm:text-5xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.12] mb-4 sm:mb-6">
             APPCV vous aide à obtenir 3x plus d’entretiens grâce à l’IA
           </h1>
 
           {/* Sous-titre informatif et concis */}
-          <p className="text-base sm:text-lg text-slate-600 max-w-2xl mx-auto mb-9 leading-relaxed font-normal">
+          <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto mb-6 sm:mb-9 leading-relaxed font-normal">
             Importez votre CV, vérifiez votre compatibilité avec les algorithmes ATS des recruteurs et recevez un plan d'action personnalisé avec rapport PDF officiel.
           </p>
 
@@ -135,7 +135,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center justify-center gap-4 mb-8">
             <Link
               to="/upload"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black transition-all duration-200 hover:-translate-y-0.5 shadow-md hover:shadow-xl cursor-pointer group"
+              className="w-full sm:w-auto min-h-[48px] inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl text-sm sm:text-base font-bold text-white bg-slate-900 hover:bg-black active:bg-slate-800 transition-all duration-200 shadow-md hover:shadow-xl cursor-pointer group"
             >
               <span>Tester mon CV gratuitement</span>
               <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-200" />
@@ -183,25 +183,25 @@ export default function HomePage() {
             </div>
 
             {/* Faux aperçu interactif haute fidélité */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-4">
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
                 <span className="text-[11px] font-semibold text-slate-400">Total des CV</span>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">3</div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">3</div>
                 <span className="text-[10px] text-emerald-600 font-bold">↑ +100% ce mois</span>
               </div>
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
                 <span className="text-[11px] font-semibold text-slate-400">Analyses Complétées</span>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">6</div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">6</div>
                 <span className="text-[10px] text-emerald-600 font-bold">↑ +14.8%</span>
               </div>
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
                 <span className="text-[11px] font-semibold text-slate-400">Score ATS Moyen</span>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">82%</div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">82%</div>
                 <span className="text-[10px] text-emerald-600 font-bold">↑ +8.4%</span>
               </div>
-              <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
+              <div className="p-3 sm:p-4 rounded-xl bg-slate-50/80 border border-slate-100 text-left">
                 <span className="text-[11px] font-semibold text-slate-400">Compétences Détectées</span>
-                <div className="text-2xl font-extrabold text-slate-900 mt-1">61</div>
+                <div className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">61</div>
                 <span className="text-[10px] text-emerald-600 font-bold">↑ Optimal</span>
               </div>
             </div>

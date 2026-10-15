@@ -105,7 +105,7 @@ export default function Header({
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
             placeholder="Rechercher un CV, un poste, une compétence..."
-            className="w-full text-xs text-slate-900 dark:text-white bg-slate-50/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-14 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-400 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-2xs"
+            className="w-full text-xs text-slate-900 dark:text-white bg-slate-50/70 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 sm:pr-14 py-2.5 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-400 focus:bg-white dark:focus:bg-slate-800 transition-all shadow-2xs"
           />
           <div className="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none">
             <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[10px] font-semibold text-slate-400 shadow-2xs">

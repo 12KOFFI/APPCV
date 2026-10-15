@@ -90,14 +90,14 @@ export default function FileDropzone({ onFichierSelectionne, disabled }) {
               {fichierLocal ? (
                 <span className="flex items-center justify-center gap-1.5 text-slate-900">
                   <CheckCircleIcon className="w-4 h-4 text-emerald-600" />
-                  <span>{fichierLocal.name}</span>
+                  <span className="truncate max-w-[200px] sm:max-w-md">{fichierLocal.name}</span>
                 </span>
               ) : (
-                'Glissez-déposez votre CV ici, ou parcourez vos fichiers'
+                <> <span className="hidden sm:inline">Glissez-déposez votre CV ici, ou parcourez vos fichiers</span> <span className="sm:hidden font-bold">Touchez pour sélectionner votre CV</span> </>
               )}
             </p>
             <p className="text-xs text-slate-500 mt-1">
-              Documents acceptés : PDF ou Word (.docx) — Taille maximale : 5 Mo
+              Formats acceptés : PDF ou Word (.docx) — Max 5 Mo
             </p>
           </div>
 

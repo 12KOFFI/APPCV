@@ -121,13 +121,7 @@ export default function Sidebar({
           </Link>
 
           {/* Bouton fermeture sur mobile */}
-          <button
-            onClick={onClose}
-            className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
-            aria-label="Fermer le menu"
-          >
-            ✕
-          </button>
+          <button onClick={onClose} className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer" aria-label="Fermer le menu"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
 
         {/* ── 2. Navigation : Groupes de Menus ── */}

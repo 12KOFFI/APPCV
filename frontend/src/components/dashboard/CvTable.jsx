@@ -95,8 +95,99 @@ export default function CvTable({ cvs = [], recherche = '', setRecherche }) {
           Aucun document ne correspond à « <span className="font-semibold text-slate-800">{recherche}</span> ».
         </div>
       ) : (
-        <div className="overflow-x-auto -mx-6 px-6">
-          <table className="w-full text-left border-collapse">
+        <>
+        <div className="md:hidden divide-y divide-slate-100">
+            {cvsAffiches.map((cv) => {
+              const date = new Intl.DateTimeFormat('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(cv.creeLe));
+
+              const isAnalyzed = cv.derniereNote !== null && cv.derniereNote !== undefined;
+
+              return (
+                <div key={bv.id} className="py-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <FileTextIcon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-slate-900 truncate text-sm">
+                          {cv.nomOriginal}
+                        </p>
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                          {bv.typeMime?.includes('pdf') ? 'PDF' : 'DOCX'} • {cv.nombreCaracteres || 0} car.
+                        </span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      {bv.dernierStatut === 'TERMINE' ? (
+                        <Badge variant="success" size="sm">
+                          <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
+                          <span>Analysé</span>
+                        </Badge>
+                      ) : cv.dernierStatut === 'EN_COURS' ? (
+                        <Badge variant="warning" size="sm">
+                          <span>En cours...</span>
+                        </Badge>
+                      ) : cv.dernierStatut === 'EN_ATTENTE' ? (
+                        <Badge variant="warning" size="sm">
+                          <span>En attente</span>
+                        </Badge>
+                      ) : cv.dernierStatut === 'ERREUR' ? (
+                        <Badge variant="danger" size="sm">
+                          <span>Erreur</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="neutral" size="sm">
+                          <span>Prêt</span>
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs bg-slate-50/70 rounded-xl px-3 py-2 border border-slate-100">
+                    <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
+                      <ClockIcon className="w-3 h-3 text-slate-400" />
+                      <span>{date}</span>
+                    </div>
+
+                    <div>
+                      {isAnalyzed ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-extrabold bg-blue-50 text-blue-700 border border-blue-100">
+                          <SparklesIcon className="w-3 h-3 text-blue-600" />
+                          <span>{cv.derniereNote} / 100</span>
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 font-medium">Non analysé</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link to={'/cv/' + cv.id + '/analyse'} className="w-full">
+                      <Button variant="primary" size="sm" className="w-full min-h-[40px] flex items-center justify-center gap-1.5 font-bold shadow-2xs">
+                        <SparklesIcon className="w-3.5 h-3.5" />
+                        <span>{isAnalyzed ? 'Ré-analyser' : 'Analyser'}</span>
+                      </Button>
+                    </Link>
+                    <Link to={'/cv/' + cv.id + '/historique'} className="w-full">
+                      <Button variant="secondary" size="sm" className="w-full min-h-[40px] flex items-center justify-center text-slate-600 font-semibold">
+                        <span>Historique ({cv.nombreAnalyses || 0})</span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto -mx-6 px-6">
+            <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <th className="py-3 pr-4">Document</th>
@@ -213,11 +304,12 @@ export default function CvTable({ cvs = [], recherche = '', setRecherche }) {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* ── Pagination en bas de tableau ── */}
       {cvsFiltres.length > itemsPerPage && (
-        <div className="flex items-center justify-between pt-5 mt-4 border-t border-slate-100 text-xs">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 mt-4 border-t border-slate-100 text-xs">
           <button
             type="button"
             disabled={page === 1}
